@@ -1,4 +1,9 @@
 ---
+version: 0.17
+date:    Fri May  7 01:14:36 PDT 2004
+changes:
+- File to File copy use File::Copy for speed
+---
 version: 0.16
 date:    Mon Mar 22 23:35:32 PST 2004
 changes:

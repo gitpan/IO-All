@@ -8,7 +8,7 @@ version_from('lib/IO/All.pm');
 
 requires(qw(
     perl 5.6.1
-    Spiffy 0.15
+    Spiffy 0.16
 ));
 
 check_nmake();

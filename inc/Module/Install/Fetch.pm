@@ -1,4 +1,4 @@
-#line 1 "inc/Module/Install/Fetch.pm - /usr/lang/perl/5.8.2/lib/site_perl/5.8.2/Module/Install/Fetch.pm"
+#line 1 "inc/Module/Install/Fetch.pm - /usr/lang/perl/5.8.3/lib/site_perl/5.8.3/Module/Install/Fetch.pm"
 # $File: //depot/cpan/Module-Install/lib/Module/Install/Fetch.pm $ $Author: autrijus $
 # $Revision: #8 $ $Change: 1374 $ $DateTime: 2003/03/18 11:50:15 $ vim: expandtab shiftwidth=4
 

@@ -2,11 +2,11 @@ package IO::All;
 use strict;
 use warnings;
 use 5.006_001;
-use Spiffy qw(-base !attribute);
+our $VERSION = '0.17';
+use Spiffy 0.16 '-base', qw(!field);
 use Fcntl qw(:DEFAULT :flock);
 use Symbol;
 use File::Spec;
-our $VERSION = '0.16';
 our @EXPORT = qw(io);
 
 spiffy_constructor 'io';
@@ -14,24 +14,24 @@ spiffy_constructor 'io';
 #===============================================================================
 # Basic Setup
 #===============================================================================
-sub attribute;
-attribute autoclose => 1;
-attribute block_size => 1024;
-attribute descriptor => undef;
-attribute domain => undef;
-attribute domain_default => 'localhost';
-attribute flags => {};
-attribute handle => undef;
-attribute io_handle => undef;
-attribute is_open => 0;
-attribute mode => undef;
-attribute name => undef;
-attribute perms => undef;
-attribute port => undef;
-attribute separator => $/;
-attribute tied_file => undef;
-attribute type => undef;
-attribute use_lock => 0;
+sub field;
+field autoclose => 1;
+field block_size => 1024;
+field descriptor => undef;
+field domain => undef;
+field domain_default => 'localhost';
+field flags => {};
+field handle => undef;
+field io_handle => undef;
+field is_open => 0;
+field mode => undef;
+field name => undef;
+field perms => undef;
+field port => undef;
+field separator => $/;
+field tied_file => undef;
+field type => undef;
+field use_lock => 0;
 
 sub proxy; 
 proxy 'autoflush';
@@ -122,12 +122,6 @@ sub init {
     }
     return $self;
 }
-
-# sub XXX {
-#     my $self = shift;
-#     require Data::Dumper;
-#     print Data::Dumper::Dumper(@_);
-# }
 
 #===============================================================================
 # Tie Interface
@@ -744,22 +738,22 @@ sub paired_arguments {
 #===============================================================================
 # Closure generating functions
 #===============================================================================
-sub attribute {
+sub field {
     my $package = caller;
-    my ($attribute, $default) = @_;
+    my ($field, $default) = @_;
     no strict 'refs';
-    return if defined &{"${package}::$attribute"};
-    *{"${package}::$attribute"} =
+    return if defined &{"${package}::$field"};
+    *{"${package}::$field"} =
       sub {
           my $self = shift;
-          unless (exists *$self->{$attribute}) {
-              *$self->{$attribute} = 
+          unless (exists *$self->{$field}) {
+              *$self->{$field} = 
                 ref($default) eq 'ARRAY' ? [] :
                 ref($default) eq 'HASH' ? {} : 
                 $default;
           }
-          return *$self->{$attribute} unless @_;
-          *$self->{$attribute} = shift;
+          return *$self->{$field} unless @_;
+          *$self->{$field} = shift;
       };
 }
 
@@ -827,31 +821,28 @@ sub overload_code_deref { shift->overload_handler(@_, '&{}') }
 sub overload_table {
     my $self = shift;
     *$self->{overload_table} ||= {
-        'file < scalar' => 'overload_print',
-        'file < scalar swap' => 'overload_slurp_to',
-        'file << scalar' => 'overload_append',
-        'file << scalar swap' => 'overload_slurp_append',
+        'file < scalar' => 'overload_scalar_to_file',
+        'file > scalar' => 'overload_file_to_scalar',
 
-        'file > scalar' => 'overload_slurp_to',
-        'file > scalar swap' => 'overload_print',
-        'file >> scalar' => 'overload_slurp_append',
-        'file >> scalar swap' => 'overload_append',
+        'file << scalar' => 'overload_scalar_addto_file',
+        'file >> scalar' => 'overload_file_addto_scalar',
 
-        'file > file' => 'overload_copy_to',
-        'file < file' => 'overload_copy_from',
-        'file >> file' => 'overload_cat_to',
-        'file << file' => 'overload_cat_from',
+        'file > file' => 'overload_file_to_file',
+        'file < file' => 'overload_file_from_file',
+        'file >> file' => 'overload_file_addto_file',
+        'file << file' => 'overload_file_addfrom_file',
 
-        'file ${} scalar' => 'overload_slurp_ref',
-        'file @{} scalar' => 'overload_file_tie',
-        'dir @{} scalar' => 'overload_dir_all',
-        'dir %{} scalar' => 'overload_dir_hash',
+        '${} file' => 'overload_file_as_scalar',
+        '@{} file' => 'overload_file_as_array',
+        '@{} dir' => 'overload_dir_as_array',
+        '%{} dir' => 'overload_dir_as_hash',
         
         'file | scalar' => 'overload_pipe_to',
         'file | scalar swap' => 'overload_pipe_from',
         
-        'socket < file' => 'overload_socket_write_file',
-        'socket &{} scalar' => 'overload_socket_code',
+        'socket < file' => 'overload_file_to_socket',
+        'file > socket' => 'overload_file_to_socket',
+        '&{} socket' => 'overload_socket_as_code',
     };
 }
 
@@ -861,30 +852,42 @@ sub overload_handler {
     $self->$method(@_);
 }
 
+my $op_swap = {
+    '>' => '<', '>>' => '<<',
+    '<' => '>', '<<' => '>>',
+};
 sub get_overload_method {
-    my ($x, $self, $other, $swap, $operator) = @_;
-    my $arg1_type = 
-      defined $self->type ? $self->type :
-      defined $self->name ? 'file' :
-      defined $self->handle ? 'file' :
-      'unknown';
-    $arg1_type =~ s/^(pipe)$/file/;
-    my $ref2 = ref($other);
-    my $arg2_type =
-      not($ref2) ? 'scalar' :
-      $ref2 eq 'CODE' ? 'code' :
-      $ref2 eq 'ARRAY' ? 'array' :
-      $ref2 eq 'HASH' ? 'hash' :
-      not($other->isa('IO::All')) ? 'ref' :
-      defined $other->type ? $other->type :
-      defined $other->name ? 'file' :
-      'unknown';
-    $arg2_type =~ s/^(pipe)$/file/;
-    my $key = "$arg1_type $operator $arg2_type" . ($swap ? ' swap' : '');
+    my ($self, $arg1, $arg2, $swap, $operator) = @_;
+    if ($swap) {
+        $operator = $op_swap->{$operator} || $operator;
+    }
+    my $arg1_type = $self->get_argument_type($arg1);
+    my $key = ($operator =~ /\{\}$/)
+    ? "$operator $arg1_type"
+    : do {
+        my $arg2_type = $self->get_argument_type($arg2);
+        "$arg1_type $operator $arg2_type";
+    };
     my $table = $self->overload_table;
     return defined $table->{$key} 
       ? $table->{$key}
       : $self->overload_undefined($key);
+}
+
+sub get_argument_type {
+    my $self = shift;
+    my $argument = shift;
+    my $ref = ref($argument);
+    return 'scalar' unless $ref;
+    return 'code' if $ref eq 'CODE';
+    return 'array' if $ref eq 'ARRAY';
+    return 'hash' if $ref eq 'HASH';
+    return 'ref' unless $argument->isa('IO::All');
+    my $type = $argument->type;
+    return defined $argument->name ? 'file' : 'unknown' 
+      unless defined $type;
+    return 'file' if $type eq 'pipe';
+    return $type;
 }
 
 sub overload_stringify {
@@ -904,34 +907,34 @@ sub overload_noop {
     return;
 }
 
-sub overload_append {
+sub overload_scalar_addto_file {
     $_[1]->append($_[2]);
     $_[1];
 }
 
-sub overload_cat_to {
+sub overload_file_addto_file {
     $_[2]->append(scalar $_[1]->slurp);
 }
 
-sub overload_cat_from {
+sub overload_file_addfrom_file {
     $_[1]->append(scalar $_[2]->slurp);
 }
 
-sub overload_copy_to {
-    local $\;
-    $_[2]->print(scalar $_[1]->slurp);
+sub overload_file_to_file {
+    require File::Copy;
+    File::Copy::copy($_[1]->name, $_[2]->name);
 }
 
-sub overload_copy_from {
-    local $\;
-    $_[1]->print(scalar $_[2]->slurp);
+sub overload_file_from_file {
+    require File::Copy;
+    File::Copy::copy($_[2]->name, $_[1]->name);
 }
 
-sub overload_dir_all {
+sub overload_dir_as_array {
     [ $_[1]->all ];
 }
 
-sub overload_dir_hash {
+sub overload_dir_as_hash {
     +{ 
         map {
             (my $name = $_->name) =~ s/.*[\/\\]//;
@@ -940,41 +943,30 @@ sub overload_dir_hash {
     };
 }
 
-sub overload_file_tie {
+sub overload_file_as_array {
     $_[1]->assert_tied_file;
 }
 
-sub overload_pipe_from {
-    $_[1]->type('pipe');
-    local $\;
-    $_[1]->print($_[2]);
-}
-
-sub overload_pipe_to {
-    $_[1]->type('pipe');
-    $_[2] = $_[1]->slurp;
-}
-
-sub overload_print {
+sub overload_scalar_to_file {
     local $\;
     $_[1]->print($_[2]);
     $_[1];
 }
 
-sub overload_slurp_ref {
+sub overload_file_as_scalar {
     my $slurp = $_[1]->slurp;
     return \$slurp;
 }
 
-sub overload_slurp_to {
+sub overload_file_to_scalar {
     $_[2] = $_[1]->slurp;
 }
 
-sub overload_slurp_append {
+sub overload_file_addto_scalar {
     $_[2] .= $_[1]->slurp;
 }
 
-sub overload_socket_code {
+sub overload_socket_as_code {
     my $self = shift;
     sub {
         my $coderef = shift;
@@ -985,7 +977,7 @@ sub overload_socket_code {
     }
 }
 
-sub overload_socket_write_file {
+sub overload_file_to_socket {
     local $\;
     $_[1]->print($_[2]->slurp);
     $_[1]->close;
@@ -1026,7 +1018,7 @@ or:
 
     my $stuff < io('./mystuff');
     io('./morestuff') >> $stuff;
-    io(./allstuff') << $stuff;
+    io('./allstuff') << $stuff;
 
 or:
 
