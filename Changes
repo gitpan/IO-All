@@ -1,4 +1,9 @@
 ---
+version: 0.13
+date:    Fri Mar 12 00:02:10 PST 2004
+changes:
+- Accidentally left debugging code in module.
+---
 version: 0.12
 date:    Tue Mar  2 21:50:05 PST 2004
 changes:

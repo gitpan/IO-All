@@ -6,7 +6,7 @@ use Spiffy qw(-base !attribute);
 use Fcntl qw(:DEFAULT :flock);
 use Symbol;
 use File::Spec;
-our $VERSION = '0.12';
+our $VERSION = '0.13';
 our @EXPORT = qw(io);
 
 spiffy_constructor 'io';
@@ -175,12 +175,12 @@ sub accept {
     my $socket; 
     while (1) {
         $socket = $self->io_handle->accept;
-        warn "Connection Accepted\n";
         last unless $flags->{-fork};
         my $pid = fork;
         $self->throw("Unable to fork for IO::All::accept")
           unless defined $pid;
         last unless $pid;
+        undef $socket;
     }
     my $io = ref($self)->new(-socket_handle => $socket);
     $io->io_handle($socket);

@@ -8,7 +8,7 @@ version_from('lib/IO/All.pm');
 
 requires(qw(
     perl 5.6.1
-    Spiffy 0.11
+    Spiffy 0.12
     IO::String 1.04
 ));
 
