@@ -15,7 +15,12 @@ my $io = io('t/dump2')->dump($hash);
 ok(-f 't/dump2');
 ok($io->close);
 ok(-s 't/dump2');
-test_file_contents2('t/dump2', join '', <DATA>);
+
+my $VAR1;
+my $a = do 't/dump2';
+my $b = eval join('',<DATA>);
+is_deeply($a,$b);
+
 ok($io->unlink);
 
 package main;

@@ -16,7 +16,12 @@ my $io = io('t/dump1')->dump($hash);
 ok(-f 't/dump1');
 ok($io->close);
 ok(-s 't/dump1');
-test_file_contents2('t/dump1', join '', <DATA>);
+
+my $VAR1;
+my $a = do 't/dump1';
+my $b = eval join('',<DATA>);
+is_deeply($a,$b);
+
 ok($io->unlink);
 
 package IO::Dumper;
@@ -25,8 +30,6 @@ use Data::Dumper;
 
 sub dump {
     my $self = shift;
-    local $Data::Dumper::Indent = 1;
-    local $Data::Dumper::Sortkeys = 1;
     $self->print(Data::Dumper::Dumper(@_));
     return $self;
 } 

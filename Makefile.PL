@@ -11,6 +11,7 @@ requires(qw(
     Spiffy 0.16
     Filter::Util::Call 0
 ));
+clean_files('t/output/*');
 
 check_nmake();
 

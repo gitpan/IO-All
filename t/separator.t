@@ -3,6 +3,7 @@ use strict;
 use warnings;
 use Test::More tests => 4;
 use IO::All;
+use IO_All_Test;
 
 join('', <DATA>) > io('t/output/separator1');
 my $io = io('t/output/separator1');

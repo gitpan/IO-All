@@ -11,11 +11,11 @@ plan( $^O !~ /^(cygwin|solaris)$/
     : (skip_all => "XXX - locking problems on solaris/cygwin")
 );
 
-my $io1 = io(-lock => 't/output/foo');
+my $io1 = io('t/output/foo')->lock;
 $io1->println('line 1');
 
 fork and do {
-    my $io2 = io(-lock => 't/output/foo');
+    my $io2 = io('t/output/foo')->lock;
     is($io2->getline, "line 1\n");
     is($io2->getline, "line 2\n");
     is($io2->getline, "line 3\n");

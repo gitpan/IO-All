@@ -1,4 +1,24 @@
 ---
+version: 0.20
+date:    Thu May 27 01:46:04 PDT 2004
+changes:
+- Rewrote documentation
+- Refactored construction
+- File::Spec support
+- File::Path support
+- lots of new methods
+---
+version: 0.20
+date:    Mon May 24 17:02:24 PDT 2004
+changes:
+- DBM support
+- MLDBM support
+- chomp support
+- Fixed forking server zombie issues
+- Replaced flags with methods (-tie -fork -lock, etc)
+- Added chainable options: assert, chomp, deep, rdonly, rdwr, sort
+- Fixed problems with perl-5.6.1 and Solaris
+---
 version: 0.18
 date:    Sun May 16 17:40:37 PDT 2004
 changes:

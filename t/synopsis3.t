@@ -33,6 +33,6 @@ close TEST;
 #     $string_out->print($line);
 # }
 
-open TEST, '-|', qq{perl -Ilib -MIO::All -e 'my \$stdin = io("-");my \$string_out = io("\\\$");while (my \$line = \$stdin->getline("")) {\$string_out->print(\$line)} print \${\$string_out->string_ref}' < t/mystuff} or die "open failed: $!";
+open TEST, '-|', qq[perl -Ilib -MIO::All -e 'my \$stdin = io("-");my \$string_out = io("\\\$");while (my \$line = \$stdin->getline("")) {\$string_out->print(\$line)} print \${\$string_out->string_ref}' < t/mystuff] or die "open failed: $!";
 test_file_contents(<TEST>, 't/mystuff');
 close TEST;

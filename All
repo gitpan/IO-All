@@ -1,0 +1,123 @@
+t/assert.t:ok(not -e 't/output/newpath/hello.txt');
+t/assert.t:ok(not -e 't/output/newpath');
+t/assert.t:my $io = io('t/output/newpath/hello.txt')->assert;
+t/assert.t:ok(not -e 't/output/newpath');
+t/assert.t:ok(-f 't/output/newpath/hello.txt');
+t/autotie.t:my $io = io('t/mystuff')->tie;
+t/autotie.t:is($io->autoclose(0) . '', 't/mystuff');
+t/backwards.t:$io->backwards;
+t/backwards.t:while (my $line = $io->getline) {
+t/backwards.t:@reversed = io('t/mystuff')->backwards->getlines;
+t/chomp.t:my $io = io('t/chomp.t')->chomp;
+t/chomp.t:for ($io->slurp) {
+t/chomp.t:$io->close;
+t/chomp.t:for ($io->chomp->separator('io')->getlines) {
+t/dbm.t:IO::All->dbm('SDBM_File');
+t/dbm.t:$db->{fortytwo} = 42;
+t/dbm.t:$db->{foo} = 'bar';
+t/error1.t:    $t1->slurp;
+t/error1.t:    $t2->next;
+t/file_subclass.t:my $io = io('t/dump2')->dump($hash);
+t/file_subclass.t:ok(-f 't/dump2');
+t/file_subclass.t:ok($io->close);
+t/file_subclass.t:ok(-s 't/dump2');
+t/file_subclass.t:ok($io->unlink);
+t/inline_subclass.t:IO::Dumper->import;
+t/inline_subclass.t:my $io = io('t/dump1')->dump($hash);
+t/inline_subclass.t:ok(-f 't/dump1');
+t/inline_subclass.t:ok($io->close);
+t/inline_subclass.t:ok(-s 't/dump1');
+t/inline_subclass.t:ok($io->unlink);
+t/inline_subclass.t:use IO::All '-base';
+t/inline_subclass.t:    $self->print(Data::Dumper::Dumper(@_));
+t/lock.t:    : (skip_all => "XXX - locking problems on solaris/cygwin")
+t/lock.t:my $io1 = io('t/output/foo')->lock;
+t/lock.t:$io1->println('line 1');
+t/lock.t:    my $io2 = io('t/output/foo')->lock;
+t/lock.t:    is($io2->getline, "line 1\n");
+t/lock.t:    is($io2->getline, "line 2\n");
+t/lock.t:    is($io2->getline, "line 3\n");
+t/lock.t:$io1->println('line 2');
+t/lock.t:$io1->println('line 3');
+t/lock.t:$io1->unlock;
+t/mldbm.t:my $io = io('t/output/mldbm')->mldbm;
+t/mldbm.t:$io->{test} = { qw( foo foolsgold bar bargain baz bazzarro ) };
+t/mldbm.t:$io->{test2} = \%ENV;
+t/mldbm.t:$io->close;
+t/mldbm.t:my $io2 = io('t/output/mldbm')->mldbm;
+t/mldbm.t:is(scalar(@{[%{$io2->{test}}]}), 6);
+t/mldbm.t:is($io2->{test}{bar}, 'bargain');
+t/pipe.t:my $perl_version < io('perl -v|');
+t/pipe.t:io('perl -v|') > $perl_version;
+t/println.t:my @lines = map {chomp; $_} $io->slurp;
+t/println.t:$temp->println(@lines);
+t/println.t:$temp->seek(0, 0);
+t/println.t:my $text = $temp->slurp;
+t/read.t:ok(not -f $outfile);
+t/read.t:my $input = io('lib/IO/All.pm')->open;
+t/read.t:my $output = io($outfile)->open('>');
+t/read.t:$input->buffer($buffer);
+t/read.t:$output->buffer($buffer);
+t/read.t:$output->write while $input->read;
+t/read.t:ok($output->close);
+t/read.t:ok($output->unlink);
+t/read_write.t:$io->buffer($buffer);
+t/read_write.t:1 while $io->read;
+t/round_robin.t:while (my $line = $io->getline || $io->getline) {
+t/scalar.t:my @list = $io->scalar;
+t/seek.t:$io->seek(index($string, 'quite'), 0);
+t/seek.t:is($io->getline, "quite enough.\n");
+t/separator.t:$io->separator('t');
+t/separator.t:my @chunks = $io->slurp;
+t/spiffy.t:ok(io->is_spiffy);
+t/spiffy.t:ok(not $dull->is_spiffy);
+t/stat.t:is($io->device, $dev);
+t/stat.t:is($io->inode, $ino);
+t/stat.t:is($io->modes, $modes);
+t/stat.t:is($io->nlink, $nlink);
+t/stat.t:is($io->uid, $uid);
+t/stat.t:is($io->gid, $gid);
+t/stat.t:is($io->device_id, $rdev);
+t/stat.t:is($io->size, $size);
+t/stat.t:is($io->atime, $atime);
+t/stat.t:is($io->mtime, $mtime);
+t/stat.t:is($io->ctime, $ctime);
+t/stat.t:is($io->blksize, $blksize);
+t/stat.t:is($io->blocks, $blocks);
+t/subtleties.t:ok($io->close);
+t/subtleties.t:ok(not $io->close);
+t/subtleties.t:my $data2 = $io->slurp;
+t/subtleties.t:ok(not $io->close);
+t/subtleties.t:ok($io2->isa('IO::All'));
+t/synopsis1.t:my $my_stuff = io('t/mystuff')->slurp;
+t/synopsis1.t:io('t/allstuff')->print($my_stuff, $more_stuff);
+t/synopsis1.t:ok(-f 't/allstuff');
+t/synopsis1.t:ok(-s 't/allstuff');
+t/synopsis2.t:ok($dir->is_dir);
+t/synopsis2.t:while (my $io = $dir->next) {
+t/synopsis2.t:    if ($io->is_file) {
+t/synopsis2.t:        my $line = $io->name . ' - ' . $io->getline;
+t/synopsis2.t:  for io('t/mydir')->all_files(0);
+t/synopsis2.t:t/mydir/file1 - file1 is fun
+t/synopsis2.t:t/mydir/file2 - file2 is woohoo
+t/synopsis2.t:t/mydir/file3 - file3 is whee
+t/synopsis3.t:# io('-')->print(io('-')->slurp);
+t/synopsis3.t:open TEST, '-|', qq{perl -Ilib -MIO::All -e 'io("-")->print(io("-")->slurp)' < t/mystuff} or die "open failed: $!";
+t/synopsis3.t:# my $stdin = io('-');
+t/synopsis3.t:# my $stdout = io('-');
+t/synopsis3.t:# $stdout->buffer($stdin->buffer); 
+t/synopsis3.t:# $stdout->write while $stdin->read;
+t/synopsis3.t:open TEST, '-|', qq{perl -Ilib -MIO::All -e 'my \$stdin = io("-");my \$stdout = io("-");\$stdout->buffer(\$stdin->buffer);\$stdout->write while \$stdin->read' < t/mystuff} or die "open failed: $!";
+t/synopsis3.t:# my $stdin = io('-');
+t/synopsis3.t:# while (my $line = $stdin->getline) {
+t/synopsis3.t:#     $string_out->print($line);
+t/synopsis3.t:open TEST, '-|', qq[perl -Ilib -MIO::All -e 'my \$stdin = io("-");my \$string_out = io("\\\$");while (my \$line = \$stdin->getline("")) {\$string_out->print(\$line)} print \${\$string_out->string_ref}' < t/mystuff] or die "open failed: $!";
+t/synopsis5.t:my $data = io('t/synopsis5.t')->slurp;
+t/synopsis5.t:my $temp = io->temp;
+t/synopsis5.t:ok($temp->print($data));
+t/synopsis5.t:ok($temp->seek(0, 0));
+t/synopsis5.t:my @paragraphs = $temp->getlines('');
+t/tie.t:my $io = io('t/tie.t')->tie;
+t/tie_file.t:is($file->[-1], 'bar');
+t/tie_file.t:is($file->[-2], 'foo');
+t/tie_file.t:io('t/output/tie_file1')->[1] = 'bar';
