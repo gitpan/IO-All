@@ -12,13 +12,14 @@ my $hash = {
     pink => 'triangle',
 };
 
-my $io = io('t/dump1')->dump($hash);
-ok(-f 't/dump1');
+die if -f 't/output/dump1';
+my $io = io('t/output/dump1')->dump($hash);
+ok(-f 't/output/dump1');
 ok($io->close);
-ok(-s 't/dump1');
+ok(-s 't/output/dump1');
 
 my $VAR1;
-my $a = do 't/dump1';
+my $a = do 't/output/dump1';
 my $b = eval join('',<DATA>);
 is_deeply($a,$b);
 

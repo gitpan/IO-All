@@ -10,8 +10,8 @@ eval {
 };
 like($@, qr{^Can't open file 'quack' for input:});
 
-my $t2 = io('t/error.t');
+my $t2 = io('t/xxxxx');
 eval {
     $t2->next;
 };
-like($@, qr{^Can't open directory 't/error\.t':});
+like($@, qr{^Can't open directory 't/xxxxx':});

@@ -1,21 +1,6 @@
 NAME
     IO::All - IO::All of it to Graham and Damian!
 
-IMPORTANT NOTES!!!
-    (14 May 2004) Version 0.20 breaks backwards compatibility (I said I
-    would :-) slightly to make the module even cleaner than before. All
-    flags like '-fork', '-tie', etc have been replaced by methods like
-    ->fork and ->tie etc. Also the syntax for creating a temporary file has
-    changed. Please read the docs and adjust accordingly. Also the docs have
-    been completely revised; another good reason to read on.
-
-    (15 Mar 2004) If you've just read the perl.com article at
-    <http://www.perl.com/pub/a/2004/03/12/ioall.html>, there have already
-    been major additions thanks to the great feedback I've gotten from the
-    Perl community. Be sure and read the latest doc. Things are changing
-    fast. Many of the changes have to do with operator overloading for
-    IO::All objects, which results in some fabulous new idioms.
-
 SYNOPSIS
         use IO::All;                                # Let the madness begin...
 
@@ -24,8 +9,8 @@ SYNOPSIS
         $contents < io 'file.txt';                  # Flipped but same operation
         $io = io 'file.txt';                        # Create a new IO::All object
         $contents = $$io;                           # Overloaded scalar dereference
-        $contents = $io->slurp;                     # A method to read everything
-        $contents = $io->scalar;                    # Another method for that
+        $contents = $io->all;                       # A method to read everything
+        $contents = $io->slurp;                     # Another method for that
         $contents = join '', $io->getlines;         # Join the separate lines
         $contents = join '', map "$_\n", @$io;      # Same. Overloaded array deref
         $io->tie;                                   # Tie the object as a handle
@@ -117,8 +102,13 @@ SYNOPSIS
         @lines = io('file.txt')->chomp->slurp;      # Chomp as you slurp
         @chunks = 
           io('file.txt')->separator('xxx')->slurp;  # Use alternnate record sep
-        $binary = io('file.bin')->binary->scalar;   # Read a binary file
+        $binary = io('file.bin')->binary->all;      # Read a binary file
         io('a-symlink')->readlink->slurp;           # Readlink returns an object
+
+        # IO::All External Plugin Methods
+        io("myfile") > io->("ftp://store.org");     # Upload a file using ftp
+        $html < io->http("www.google.com");         # Grab a web page
+        io('mailto:worst@enemy.net')->print($spam); # Email a "friend"
 
         # This is just the beginning, read on...
 
@@ -138,12 +128,10 @@ DESCRIPTION
     from). IO::All adds dozens of other helpful idiomatic methods including
     file stat and manipulation functions.
 
-    Optionally, every IO::All object can be tied to itself. This means that
-    you can use most perl IO builtins on it: readline, <>, getc, print,
-    printf, syswrite, sysread, close.
-
-    If you need even more power, IO::All is easily subclassable. You can
-    override any methods and also add new methods of your own.
+    IO::All is pluggable, and modules like IO::All::LWP and IO::All::Mailto
+    add even more functionality. Optionally, every IO::All object can be
+    tied to itself. This means that you can use most perl IO builtins on it:
+    readline, <>, getc, print, printf, syswrite, sysread, close.
 
     The distinguishing magic of IO::All is that it will automatically open
     (and close) files, directories, sockets and other IO things for you. You
@@ -158,7 +146,7 @@ DESCRIPTION
 
     with this:
 
-        my $stuff < io'./mystuff';
+        my $stuff < io"./mystuff";
 
     And that is a good thing!
 
@@ -166,25 +154,29 @@ METHOD ROLE CALL
     Here is an alphabetical list of all the public methods that you can call
     on an IO::All object.
 
-    "All", "All_Files", "All_Links", "All_Dirs", "abs2rel", "accept", "all",
-    "all_dirs", "all_files", "all_links", "append", "appendf", "appendln",
-    "assert", "atime", "autoclose", "autoflush", "backwards", "binary",
-    "blksize", "blocks", "block_size", "buffer", "canonpath",
-    "case_tolerant", "catdir", "catfile", "catpath", "chomp", "clear",
-    "close", "confess", "ctime", "curdir", "dbm", "deep", "device",
-    "device_id", "devnull", "dir", "domain", "eof", "errors", "file",
-    "filename", "fileno", "filepath", "filter", "fork", "getc", "getline",
-    "getlines", "gid", "handle", "inode", "io_handle", "is_absolute",
-    "is_dir", "is_file", "is_open", "is_pipe", "is_socket", "is_stdio",
-    "is_string", "join", "length", "link", "lock", "mkdir", "mkpath",
-    "mldbm", "mode", "modes", "mtime", "name", "new", "next", "nlink",
-    "open", "path", "perms", "pipe", "port", "print", "printf", "println",
-    "rdonly", "rdwr", "read", "readlink", "recv", "rel2abs", "rename",
-    "rmdir", "rmtree", "rootdir", "scalar", "seek", "send", "separator",
-    "shutdown", "size", "slurp", "socket", "sort", "splitdir", "splitpath",
-    "stat", "stdio", "stderr", "stdin", "stdout", "string", "string_ref",
-    "sysread", "syswrite", "tell", "temp", "tie", "tmpdir", "truncate",
-    "type", "uid", "unlink", "unlock", "updir" and "write".
+    "abs2rel", "accept", "All", "all", "All_Dirs", "all_dirs", "All_Files",
+    "all_files", "All_Links", "all_links", "append", "appendf", "appendln",
+    "assert", "atime", "autoclose", "autoflush", "backwards", "bcc",
+    "binary", "binmode", "blksize", "blocks", "block_size", "buffer",
+    "canonpath", "case_tolerant", "catdir", "catfile", "catpath", "cc",
+    "chomp", "clear", "close", "confess", "content", "ctime", "curdir",
+    "dbm", "deep", "device", "device_id", "devnull", "dir", "domain",
+    "empty", "eof", "errors", "file", "filename", "fileno", "filepath",
+    "filter", "fork", "from", "ftp", "get", "getc", "getline", "getlines",
+    "gid", "handle", "http", "https", "inode", "io_handle", "is_absolute",
+    "is_dir", "is_dbm", "is_executable", "is_file", "is_link", "is_mldbm",
+    "is_open", "is_pipe", "is_readable", "is_socket", "is_stdio",
+    "is_string", "is_temp", "is_writable", "join", "length", "link", "lock",
+    "mailer", "mailto", "mkdir", "mkpath", "mldbm", "mode", "modes",
+    "mtime", "name", "new", "next", "nlink", "open", "password", "path",
+    "perms", "pipe", "port", "print", "printf", "println", "put", "rdonly",
+    "rdwr", "read", "readlink", "recv", "rel2abs", "rename", "request",
+    "response", "rmdir", "rmtree", "rootdir", "scalar", "seek", "send",
+    "separator", "shutdown", "size", "slurp", "socket", "sort", "splitdir",
+    "splitpath", "stat", "stdio", "stderr", "stdin", "stdout", "string",
+    "string_ref", "subject", "sysread", "syswrite", "tell", "temp", "tie",
+    "tmpdir", "to", "touch", "truncate", "type", "user", "uid", "unlink",
+    "unlock", "updir", "uri", "utf8", "utime" and "write".
 
     Each method is documented further below.
 
@@ -479,6 +471,7 @@ THE IO::All METHODS
             - '=' means STDERR
             - '$' means an IO::String object
             - '?' means a temporary file
+            - A URI including: http, https, ftp and mailto
 
         If no file descriptor is provided, an object will still be created,
         but it must be defined by one of the following methods before it can
@@ -523,6 +516,29 @@ THE IO::All METHODS
             my $io = io('ls -l')->pipe;
             my $io = io->pipe('ls -l');
 
+    * dbm
+        This method takes the names of zero or more DBM modules. The first
+        one that is available is used to process the dbm file.
+
+            io('mydbm')->dbm('NDBM_File', 'SDBM_File')->{author} = 'ingy';
+
+        If no module names are provided, the first available of the
+        following is used:
+
+            DB_File GDBM_File NDBM_File ODBM_File SDBM_File
+
+    * mldbm
+        Similar to the "dbm" method, except create a Multi Level DBM object
+        using the MLDBM module.
+
+        This method takes the names of zero or more DBM modules and an
+        optional serialization module. The first DBM module that is
+        available is used to process the MLDBM file. The serialization
+        module can be Data::Dumper, Storable or FreezeThaw.
+
+            io('mymldbm')->mldbm('GDBM_File', 'Storable')->{author} = 
+              {nickname => 'ingy'};
+
     * string
         Make the object be a IO::String object. These are equivalent:
 
@@ -557,6 +573,18 @@ THE IO::All METHODS
 
             my $file_object = io->file->handle($file_handle);
             my $dir_object = io->dir->handle($dir_handle);
+
+    * http
+        Make the object represent an http uri. Requires IO-All-LWP.
+
+    * https
+        Make the object represent an https uri. Requires IO-All-LWP.
+
+    * ftp
+        Make the object represent a ftp uri. Requires IO-All-LWP.
+
+    * mailto
+        Make the object represent a mailto uri. Requires IO-All-Mailto.
 
     If you need to use the same options to create a lot of objects, and
     don't want to duplicate the code, just create a dummy object with the
@@ -653,6 +681,10 @@ THE IO::All METHODS
             my $io = io('foo')->tie;
             @lines = <$io>;
 
+    * utf8
+        Indicates that IO should be done using utf8 encoding. Calls binmode
+        with ":utf8" layer.
+
   Configuration Methods
     The following methods don't do any actual I/O, but they set specific
     values to configure the IO::All object.
@@ -661,6 +693,13 @@ THE IO::All METHODS
     value. If arguments are passed they will be used to set the current
     value, and the object reference will be returned for potential method
     chaining.
+
+    * bcc
+        Set the Bcc field for a mailto object.
+
+    * binmode
+        Proxy for binmode. Requires a layer to be passed. Use "binary" for
+        plain binary mode.
 
     * block_size
         The default length to be used for "read" and "sysread" calls.
@@ -681,16 +720,11 @@ THE IO::All METHODS
             $output->buffer($input->buffer($buffer));
             $output->write while $input->read;
 
-    * dbm
-        This method takes the names of zero or more DBM modules. The first
-        one that is available is used to process the dbm file.
+    * cc
+        Set the Cc field for a mailto object.
 
-            io('mydbm')->dbm('NDBM_File', 'SDBM_File')->{author} = 'ingy';
-
-        If no module names are provided, the first available of the
-        following is used:
-
-            DB_File GDBM_File NDBM_File ODBM_File SDBM_File
+    * content
+        Get or set the content for an LWP operation manually.
 
     * domain
         Set the domain name or ip address that a socket should use.
@@ -709,20 +743,12 @@ THE IO::All METHODS
         @odd will contain all the files under the current directory whose
         size is an odd number of bytes.
 
-    * mldbm
-        Similar to the "dbm" method, except create a Multi Level DBM object
-        using the MLDBM module.
+    * from
+        Indicate the sender for a mailto object.
 
-        This method takes the names of zero or more DBM modules and an
-        optional serialization module. The first DBM module that is
-        available is used to process the MLDBM file. The serialization
-        module can be Data::Dumper, Storable or FreezeThaw.
-
-            io('mymldbm')->mldbm('GDBM_File', 'Storable')->{author} = 
-              {nickname => 'ingy'};
-
-    * domain
-        Set the domain name or ip address that a socket should use.
+    * mailer
+        Set the mailer program for a mailto transaction. Defaults to
+        'sendmail'.
 
     * mode
         Set the mode for which the file should be opened. Examples:
@@ -734,12 +760,21 @@ THE IO::All METHODS
         Set or get the name of the file or directory represented by the
         IO::All object.
 
+    * password
+        Set the password for an LWP transaction.
+
     * perms
         Sets the permissions to be used if the file/directory needs to be
         created.
 
     * port
         Set the port number that a socket should use.
+
+    * request
+        Manually specify the request object for an LWP transaction.
+
+    * response
+        Returns the resulting reponse object from an LWP transaction.
 
     * separator
         Sets the record (line) separator to whatever value you pass it.
@@ -750,6 +785,18 @@ THE IO::All METHODS
 
         Returns a reference to the internal string that is acting like a
         file.
+
+    * subject
+        Set the subject for a mailto transaction.
+
+    * to
+        Set the recipient address for a mailto request.
+
+    * uri
+        Direct access to the URI used in LWP transactions.
+
+    * user
+        Set the user name for an LWP transaction.
 
   IO Action Methods
     These are the methods that actually perform I/O operations on an IO::All
@@ -764,6 +811,11 @@ THE IO::All METHODS
         automatically be forked for every connection.
 
     * all
+        Read all contents into a single string.
+
+            compare(io('file1')->all, io('file2')->all);
+
+    * all (For directories)
         Returns a list of IO::All objects for all files and subdirectories
         in a directory.
 
@@ -816,8 +868,15 @@ THE IO::All METHODS
         release the handle. For sockets it calls shutdown. For tied things
         it unties them, and it unlocks locked things.
 
+    * empty
+        Returns true if a file exists but has no size, or if a directory
+        exists but has no contents.
+
     * eof
         Proxy for IO::Handle::eof
+
+    * exists
+        Returns whether or not the file or directory exists.
 
     * filename
         Return the name portion of the file path in the object. For example:
@@ -835,6 +894,9 @@ THE IO::All METHODS
             io('my/path/file.txt')->filename;
 
         would return "my/path".
+
+    * get
+        Perform an LWP GET request manually.
 
     * getc
         Proxy for IO::Handle::getc
@@ -855,6 +917,13 @@ THE IO::All METHODS
         Returns boolean telling whether or not the IO::All object represents
         a directory.
 
+    * is_executable
+        Returns true if file or directory is executable.
+
+    * is_dbm
+        Returns boolean telling whether or not the IO::All object represents
+        a dbm file.
+
     * is_file
         Returns boolean telling whether or not the IO::All object represents
         a file.
@@ -863,12 +932,19 @@ THE IO::All METHODS
         Returns boolean telling whether or not the IO::All object represents
         a symlink.
 
+    * is_mldbm
+        Returns boolean telling whether or not the IO::All object represents
+        a mldbm file.
+
     * is_open
         Indicates whether the IO::All is currently open for input/output.
 
     * is_pipe
         Returns boolean telling whether or not the IO::All object represents
         a pipe operation.
+
+    * is_readable
+        Returns true if file or directory is readable.
 
     * is_socket
         Returns boolean telling whether or not the IO::All object represents
@@ -881,6 +957,13 @@ THE IO::All METHODS
     * is_string
         Returns boolean telling whether or not the IO::All object represents
         an IO::String object.
+
+    * is_temp
+        Returns boolean telling whether or not the IO::All object represents
+        a temporary file.
+
+    * is_writable
+        Returns true if file or directory is writable.
 
     * length
         Return the length of the internal buffer.
@@ -914,6 +997,9 @@ THE IO::All METHODS
     * println
         Same as print, but adds newline to each argument unless it already
         ends with one.
+
+    * put
+        Perform an LWP PUT request manually.
 
     * read
         This method varies depending on its context. Read carefully (no pun
@@ -961,11 +1047,7 @@ THE IO::All METHODS
         files and directories beneath it. Proxy for File::Path::rmtree.
 
     * scalar
-        Same as slurp, but ignores list context and always returns one
-        string. Nice to use when you, for instance, want to use as a
-        function argument where list context is implied:
-
-            compare(io('file1')->scalar, io('file2')->scalar);
+        Deprecated. Same as "all()".
 
     * seek
         Proxy for IO::Handle::seek. If you use seek on an unopened file, it
@@ -998,6 +1080,10 @@ THE IO::All METHODS
         error. It could be useful to override it in a subclass, to provide
         more control in error handling.
 
+    * touch
+        Update the atime and mtime values for a file or directory. Creates
+        an empty file if the file does not exist.
+
     * truncate
         Proxy for IO::Handle::truncate
 
@@ -1022,6 +1108,9 @@ THE IO::All METHODS
 
     * unlock
         Release a lock from an object that used the "lock" method.
+
+    * utime
+        Proxy for the utime Perl function.
 
     * write
         Opposite of "read" for file operations only.
@@ -1154,6 +1243,18 @@ THE IO::All METHODS
         Returns an IO::All object representing the current parent directory.
 
 OPERATIONAL NOTES
+    *   Each IO::All object gets reblessed into an IO::All::* object as soon
+        as IO::All can determine what type of object it should be. Sometimes
+        it gets reblessed more than once:
+
+            my $io = io('mydbm.db');
+            $io->dbm('DB_File');
+            $io->{foo} = 'bar';
+
+        In the first statement, $io has a reference value of
+        'IO::All::File', if "mydbm.db" exists. In the second statement, the
+        object is reblessed into class 'IO::All::DBM'.
+
     *   An IO::All object will automatically be opened as soon as there is
         enough contextual information to know what type of object it is, and
         what mode it should be opened for. This is usually when the first
