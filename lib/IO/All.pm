@@ -2,8 +2,8 @@ package IO::All;
 use strict;
 use warnings;
 use 5.006_001;
-our $VERSION = '0.17';
-use Spiffy 0.16 '-base', qw(!field);
+our $VERSION = '0.18';
+use Spiffy 0.16 '-Base', qw(!field);
 use Fcntl qw(:DEFAULT :flock);
 use Symbol;
 use File::Spec;
@@ -14,6 +14,8 @@ spiffy_constructor 'io';
 #===============================================================================
 # Basic Setup
 #===============================================================================
+my $dbm_list;
+
 sub field;
 field autoclose => 1;
 field block_size => 1024;
@@ -32,13 +34,12 @@ field separator => $/;
 field tied_file => undef;
 field type => undef;
 field use_lock => 0;
+field dbm_list => undef;
 
 sub proxy; 
 proxy 'autoflush';
 proxy 'eof';
 proxy 'fileno';
-proxy 'getc' => '<';
-proxy 'seek';
 proxy 'stat';
 proxy 'string_ref';
 proxy 'tell';
@@ -49,13 +50,15 @@ proxy_open print => '>';
 proxy_open printf => '>';
 proxy_open sysread => O_RDONLY;
 proxy_open syswrite => O_CREAT | O_WRONLY;
+proxy_open seek => '+<';
+proxy_open 'getc';
 proxy_open 'recv';
 proxy_open 'send';
 
 #===============================================================================
 # Public class methods
 #===============================================================================
-sub new {
+sub new() {
     my $class = shift;
     my $self = bless Symbol::gensym(), $class;
     my ($args) = $self->parse_arguments(@_);
@@ -65,7 +68,6 @@ sub new {
 }
 
 sub init {
-    my $self = shift;
     my ($args, @values) = $self->parse_arguments(@_);
     if (defined $args->{-file_name}) {
         require IO::File;
@@ -123,24 +125,32 @@ sub init {
     return $self;
 }
 
+sub dbm {
+    if (not ref($self)) {
+        $dbm_list = [ @_ ];
+        return $self;
+    }
+    $self->dbm_list([ @_ ]);
+    return $self;
+}
+
 #===============================================================================
 # Tie Interface
 #===============================================================================
-sub TIEHANDLE {
+sub TIEHANDLE() {
     return $_[0] if ref $_[0];
     my $class = shift;
     my $self = bless Symbol::gensym(), $class;
     $self->init(@_);
 }
 
-sub READLINE {
+sub READLINE() {
     goto &getlines if wantarray;
     goto &getline;
 }
 
 sub DESTROY {
     no warnings;
-    my $self = shift;
     untie *$self if tied *$self;
 }
 
@@ -164,7 +174,6 @@ sub BINMODE { return }
 # Public instance methods
 #===============================================================================
 sub accept {
-    my $self = shift;
     $self->assert_open_socket('-listen');
     my ($flags) = $self->parse_arguments(@_);
     my $socket; 
@@ -175,6 +184,7 @@ sub accept {
         $self->throw("Unable to fork for IO::All::accept")
           unless defined $pid;
         last unless $pid;
+        close $socket;
         undef $socket;
     }
     my $io = ref($self)->new(-socket_handle => $socket);
@@ -184,12 +194,10 @@ sub accept {
 }
 
 sub All {
-    my $self = shift;
     $self->all('-r');
 }
 
 sub all {
-    my $self = shift;
     my @args = @_;
     my ($flags) = $self->parse_arguments(@args);
     my @all;
@@ -203,55 +211,45 @@ sub all {
 }
 
 sub All_Dirs {
-    my $self = shift;
     $self->all_dirs(-r => @_);
 }
 
 sub all_dirs {
-    my $self = shift;
     grep {$_->type eq 'dir'} $self->all(@_);
 }
 
 sub All_Files {
-    my $self = shift;
     $self->all_files(-r => @_);
 }
 
 sub all_files {
-    my $self = shift;
     grep {$_->type eq 'file'} $self->all(@_);
 }
 
 sub All_Links {
-    my $self = shift;
     $self->all_links(-r => @_);
 }
 
 sub all_links {
-    my $self = shift;
     grep {$_->type eq 'link'} $self->all(@_);
 }
 
 sub append {
-    my $self = shift;
     $self->assert_open('>>');
     $self->print(@_);
 }
 
 sub appendln {
-    my $self = shift;
     $self->assert_open('>>');
     $self->println(@_);
 }
 
 sub backwards {
-    my $self = shift;
     *$self->{backwards} = 1;
     return $self;
 }
 
 sub buffer {
-    my $self = shift;
     if (not @_) {
         *$self->{buffer} = do {my $x = ''; \ $x}
           unless exists *$self->{buffer};
@@ -263,13 +261,11 @@ sub buffer {
 }
 
 sub clear {
-    my $self = shift;
     my $buffer = *$self->{buffer};
     $$buffer = '';
 }
 
 sub close {
-    my $self = shift;
     return unless $self->is_open;
     $self->is_open(0);
     $self->shutdown
@@ -281,8 +277,21 @@ sub close {
     $io_handle->close(@_);
 }
 
+sub device    { my $x = (stat($self->io_handle || $self->name))[0] }
+sub inode     { my $x = (stat($self->io_handle || $self->name))[1] }
+sub modes     { my $x = (stat($self->io_handle || $self->name))[2] }
+sub nlink     { my $x = (stat($self->io_handle || $self->name))[3] }
+sub uid       { my $x = (stat($self->io_handle || $self->name))[4] }
+sub gid       { my $x = (stat($self->io_handle || $self->name))[5] }
+sub device_id { my $x = (stat($self->io_handle || $self->name))[6] }
+sub size      { my $x = (stat($self->io_handle || $self->name))[7] }
+sub atime     { my $x = (stat($self->io_handle || $self->name))[8] }
+sub mtime     { my $x = (stat($self->io_handle || $self->name))[9] }
+sub ctime     { my $x = (stat($self->io_handle || $self->name))[10] }
+sub blksize   { my $x = (stat($self->io_handle || $self->name))[11] }
+sub blocks    { my $x = (stat($self->io_handle || $self->name))[12] }
+
 sub getline {
-    my $self = shift;
     return $self->getline_backwards
       if *$self->{backwards};
     my ($args, @values) = $self->parse_arguments(@_);
@@ -301,7 +310,6 @@ sub getline {
 }
 
 sub getlines {
-    my $self = shift;
     return $self->getlines_backwards
       if *$self->{backwards};
     my ($args, @values) = $self->parse_arguments(@_);
@@ -321,37 +329,30 @@ sub getlines {
 }
 
 sub is_dir {
-    my $self = shift;
     ($self->type || '') eq 'dir';
 }
 
 sub is_file {
-    my $self = shift;
     ($self->type || '') eq 'file';
 }
 
 sub is_link {
-    my $self = shift;
     ($self->type || '') eq 'link';
 }
 
 sub is_socket {
-    my $self = shift;
     ($self->type || '') eq 'socket';
 }
 
 sub is_string {
-    my $self = shift;
     ($self->type || '') eq 'string';
 }
 
 sub length {
-    my $self = shift;
     length(${$self->buffer});
 }
 
 sub next {
-    my $self = shift;
     $self->assert_open_dir;
     my $name = '.'; 
     while ($name =~ /^\.{1,2}$/) {
@@ -365,9 +366,7 @@ sub next {
 }
 
 sub open {
-    my $self = shift;
-    $self->throw("IO::All object already open")
-      if $self->is_open;
+    return $self if $self->is_open;
     $self->is_open(1);
     my ($mode, $perms) = @_;
     $self->mode($mode) if defined $mode;
@@ -392,12 +391,10 @@ sub open {
 }
 
 sub println {
-    my $self = shift;
     $self->print(map {/\n\z/ ? ($_) : ($_, "\n")} @_);
 }
 
 sub read {
-    my $self = shift;
     $self->assert_open('<');
     my $length = (@_ or $self->type eq 'dir')
     ? $self->io_handle->read(@_)
@@ -416,30 +413,31 @@ sub read {
 }
 
 sub rmdir {
-    my $self = shift;
     rmdir $self->name;
 }
 
+sub scalar {
+    $self->assert_open('<');
+    local $/;
+    my $scalar = $self->io_handle->getline;
+    $self->error_check;
+    $self->autoclose && $self->close;
+    return $scalar;
+}
+
 sub shutdown {
-    my $self = shift;
     my $how = @_ ? shift : 2;
     $self->io_handle->shutdown(2);
 }
 
 sub slurp {
-    my $self = shift;
-    $self->assert_open('<');
-    local $/;
-    my $slurp = $self->io_handle->getline;
-    $self->error_check;
-    $self->autoclose && $self->close;
+    my $slurp = $self->scalar;
     return $slurp unless wantarray;
     my $separator = $self->separator;
     split /(?<=\Q$separator\E)/, $slurp;
 }
 
 sub temporary_file {
-    my $self = shift;
     require IO::File;
     my $temp_file = IO::File::new_tmpfile()
       or $self->throw("Can't create temporary file");
@@ -450,12 +448,10 @@ sub temporary_file {
 }
 
 sub unlink {
-    my $self = shift;
     unlink $self->name;
 }
 
 sub unlock {
-    my $self = shift;
     my $io_handle = $self->io_handle;
     if ($self->use_lock) {
         flock $io_handle, LOCK_UN;
@@ -463,7 +459,6 @@ sub unlock {
 }
 
 sub write {
-    my $self = shift;
     $self->assert_open_file('>');
     my $length = @_
     ? $self->io_handle->write(@_)
@@ -477,17 +472,15 @@ sub write {
 # Implementation methods. Subclassable.
 #===============================================================================
 sub throw {
-    my $self = shift;
     require Carp;
-#     Carp::croak(@_);
-    Carp::confess(@_);
+    Carp::croak(@_);
+#     Carp::confess(@_);
 }
 
 #===============================================================================
 # Private instance methods
 #===============================================================================
 sub assert_dirpath {
-    my $self = shift;
     my $dir_name = $self->name
       or $self->throw("No directory name for IO::All object");
     return $dir_name if -d $dir_name or
@@ -500,7 +493,6 @@ sub assert_dirpath {
 }
 
 sub assert_open {
-    my $self = shift;
     return if $self->is_open;
     my $type = $self->type || '';
     return $self->assert_open_file(@_) unless $type; 
@@ -509,7 +501,6 @@ sub assert_open {
 }
 
 sub assert_open_backwards {
-    my $self = shift;
     return if $self->is_open;
     require File::ReadBackwards;
     my $file_name = $self->name;
@@ -519,8 +510,29 @@ sub assert_open_backwards {
     $self->is_open(1);
 }
 
+sub assert_open_dbm {
+    my $tied_file = $self->tied_file;
+    return $tied_file if $tied_file;
+    my $list = $self->dbm_list || $dbm_list || [];
+    my @list = @$list ? @$list :
+      (qw(DB_File GDBM_File NDBM_File ODBM_File SDBM_File));
+    my $class;
+    for my $module (@list) {
+        if (defined $INC{"$module.pm"} or eval "require $module; 1") {
+            $class = $module;
+            last;
+        }
+    }
+    $self->throw("No module available for IO::All DBM operation")
+      unless defined $class;
+    my $hash;
+    my $filename = $self->name;
+    tie %$hash, $class, $filename, O_RDWR|O_CREAT, 0666
+      or $self->throw("Can't open '$filename' as DBM file:\n$!");
+    $self->tied_file($hash);
+}
+
 sub assert_open_dir {
-    my $self = shift;
     return if $self->is_open;
     require IO::Dir;
     $self->type('dir');
@@ -530,7 +542,6 @@ sub assert_open_dir {
 }
 
 sub assert_open_file {
-    my $self = shift;
     return if $self->is_open;
     $self->type('file');
     require IO::File;
@@ -541,7 +552,6 @@ sub assert_open_file {
 }
 
 sub assert_open_pipe {
-    my $self = shift;
     return if $self->is_open;
     require IO::Handle;
     $self->io_handle(IO::Handle->new)
@@ -557,7 +567,6 @@ sub assert_open_pipe {
 }
 
 sub assert_open_socket {
-    my $self = shift;
     return if $self->is_open;
     $self->type('socket');
     $self->is_open(1);
@@ -583,7 +592,6 @@ sub assert_open_socket {
 }
 
 sub assert_tied_file {
-    my $self = shift;
     return $self->tied_file || do {
         eval {require Tie::File};
         $self->throw("Tie::File required for file array operations") if $@;
@@ -594,7 +602,6 @@ sub assert_tied_file {
 }
 
 sub boolean_arguments {
-    my $self = shift;
     (
         qw(
             -a -r 
@@ -606,14 +613,12 @@ sub boolean_arguments {
 }
 
 sub error_check {
-    my $self = shift;
     return unless $self->io_handle->can('error');
     return unless $self->io_handle->error;
     $self->throw($!);
 }
 
 sub copy {
-    my $self = shift;
     my $copy;
     for (keys %{*$self}) {
         $copy->{$_} = *$self->{$_};
@@ -624,7 +629,6 @@ sub copy {
 }
 
 sub get_socket_domain_port {
-    my $self = shift;
     my ($domain, $port);
     ($domain, $port) = split /:/, $self->name
       if defined $self->name;
@@ -634,13 +638,11 @@ sub get_socket_domain_port {
 }
 
 sub getline_backwards {
-    my $self = shift;
     $self->assert_open_backwards;
     return $self->io_handle->readline;
 }
 
 sub getlines_backwards {
-    my $self = shift;
     my @lines;
     while (defined (my $line = $self->getline_backwards)) {
         push @lines, $line;
@@ -649,7 +651,6 @@ sub getlines_backwards {
 }
 
 sub lock {
-    my $self = shift;
     return unless $self->use_lock;
     my $io_handle = $self->io_handle;
     my $flag = $self->mode =~ /^>>?$/
@@ -659,7 +660,6 @@ sub lock {
 }
 
 sub open_file {
-    my $self = shift;
     require IO::File;
     my $handle = IO::File->new;
     $self->io_handle($handle);
@@ -674,7 +674,6 @@ my %mode_msg = (
     '>>' => 'append',
 );
 sub open_file_msg {
-    my $self = shift;
     my $name = defined $self->name
       ? " '" . $self->name . "'"
       : '';
@@ -685,7 +684,6 @@ sub open_file_msg {
 }
 
 sub open_dir {
-    my $self = shift;
     require IO::Dir;
     my $handle = IO::Dir->new;
     $self->io_handle($handle);
@@ -694,7 +692,6 @@ sub open_dir {
 }
 
 sub open_dir_msg {
-    my $self = shift;
     my $name = defined $self->name
       ? " '" . $self->name . "'"
       : '';
@@ -702,8 +699,8 @@ sub open_dir_msg {
 }
 
 sub open_name {
-    my $self = shift;
     return $self->open_std if $self->descriptor eq '-';
+    return $self->open_stderr if $self->descriptor eq '=';
     return $self->open_string if $self->descriptor eq '$';
     return $self->open_file(@_) unless defined $self->type;
     return $self->open_file(@_) if $self->type eq 'file';
@@ -713,15 +710,17 @@ sub open_name {
 }
 
 sub open_std {
-    my $self = shift;
     my $fileno = $self->mode eq '>'
     ? fileno(STDOUT)
     : fileno(STDIN);
     $self->io_handle->fdopen($fileno, $self->mode);
 }
 
+sub open_stderr {
+    $self->io_handle->fdopen(fileno(STDERR), '>');
+}
+
 sub open_string {
-    my $self = shift;
     require IO::String;
     $self->io_handle(IO::String->new);
 }
@@ -738,7 +737,7 @@ sub paired_arguments {
 #===============================================================================
 # Closure generating functions
 #===============================================================================
-sub field {
+sub field() {
     my $package = caller;
     my ($field, $default) = @_;
     no strict 'refs';
@@ -757,7 +756,7 @@ sub field {
       };
 }
 
-sub proxy {
+sub proxy() {
     my $package = caller;
     my ($proxy) = @_;
     no strict 'refs';
@@ -771,7 +770,7 @@ sub proxy {
       };
 }
 
-sub proxy_open {
+sub proxy_open() {
     my $package = caller;
     my ($proxy, @args) = @_;
     no strict 'refs';
@@ -808,18 +807,17 @@ use overload '@{}' => 'overload_array_deref';
 use overload '%{}' => 'overload_hash_deref';
 use overload '&{}' => 'overload_code_deref';
 
-sub overload_bitwise_or { shift->overload_handler(@_, '|') }
-sub overload_left_bitshift { shift->overload_handler(@_, '<<') }
-sub overload_right_bitshift { shift->overload_handler(@_, '>>') }
-sub overload_less_than { shift->overload_handler(@_, '<') }
-sub overload_greater_than { shift->overload_handler(@_, '>') }
-sub overload_string_deref { shift->overload_handler(@_, '${}') }
-sub overload_array_deref { shift->overload_handler(@_, '@{}') }
-sub overload_hash_deref { shift->overload_handler(@_, '%{}') }
-sub overload_code_deref { shift->overload_handler(@_, '&{}') }
+sub overload_bitwise_or { $self->overload_handler(@_, '|') }
+sub overload_left_bitshift { $self->overload_handler(@_, '<<') }
+sub overload_right_bitshift { $self->overload_handler(@_, '>>') }
+sub overload_less_than { $self->overload_handler(@_, '<') }
+sub overload_greater_than { $self->overload_handler(@_, '>') }
+sub overload_string_deref { $self->overload_handler(@_, '${}') }
+sub overload_array_deref { $self->overload_handler(@_, '@{}') }
+sub overload_hash_deref { $self->overload_handler(@_, '%{}') }
+sub overload_code_deref { $self->overload_handler(@_, '&{}') }
 
 sub overload_table {
-    my $self = shift;
     *$self->{overload_table} ||= {
         'file < scalar' => 'overload_scalar_to_file',
         'file > scalar' => 'overload_file_to_scalar',
@@ -835,6 +833,7 @@ sub overload_table {
         '${} file' => 'overload_file_as_scalar',
         '@{} file' => 'overload_file_as_array',
         '@{} dir' => 'overload_dir_as_array',
+        '%{} file' => 'overload_file_as_dbm',
         '%{} dir' => 'overload_dir_as_hash',
         
         'file | scalar' => 'overload_pipe_to',
@@ -846,7 +845,7 @@ sub overload_table {
     };
 }
 
-sub overload_handler {
+sub overload_handler() {
     my ($self) = @_;
     my $method = $self->get_overload_method(@_);
     $self->$method(@_);
@@ -856,7 +855,7 @@ my $op_swap = {
     '>' => '<', '>>' => '<<',
     '<' => '>', '<<' => '>>',
 };
-sub get_overload_method {
+sub get_overload_method() {
     my ($self, $arg1, $arg2, $swap, $operator) = @_;
     if ($swap) {
         $operator = $op_swap->{$operator} || $operator;
@@ -875,7 +874,6 @@ sub get_overload_method {
 }
 
 sub get_argument_type {
-    my $self = shift;
     my $argument = shift;
     my $ref = ref($argument);
     return 'scalar' unless $ref;
@@ -891,13 +889,11 @@ sub get_argument_type {
 }
 
 sub overload_stringify {
-    my $self = shift;
     my $name = $self->name;
     return defined($name) ? $name : overload::StrVal($self);
 }
 
 sub overload_undefined {
-    my $self = shift;
     my $key = shift;
     warn "Undefined behavior for overloaded IO::All operation: '$key'";
     return 'overload_noop';
@@ -907,34 +903,36 @@ sub overload_noop {
     return;
 }
 
-sub overload_scalar_addto_file {
+sub overload_scalar_addto_file() {
     $_[1]->append($_[2]);
     $_[1];
 }
 
-sub overload_file_addto_file {
-    $_[2]->append(scalar $_[1]->slurp);
+sub overload_file_addto_file() {
+    $_[2]->append($_[1]->scalar);
 }
 
-sub overload_file_addfrom_file {
-    $_[1]->append(scalar $_[2]->slurp);
+sub overload_file_addfrom_file() {
+    $_[1]->append($_[2]->scalar);
 }
 
-sub overload_file_to_file {
+sub overload_file_to_file() {
     require File::Copy;
     File::Copy::copy($_[1]->name, $_[2]->name);
+    return $_[2];
 }
 
-sub overload_file_from_file {
+sub overload_file_from_file() {
     require File::Copy;
     File::Copy::copy($_[2]->name, $_[1]->name);
+    return $_[1];
 }
 
-sub overload_dir_as_array {
+sub overload_dir_as_array() {
     [ $_[1]->all ];
 }
 
-sub overload_dir_as_hash {
+sub overload_dir_as_hash() {
     +{ 
         map {
             (my $name = $_->name) =~ s/.*[\/\\]//;
@@ -943,31 +941,34 @@ sub overload_dir_as_hash {
     };
 }
 
-sub overload_file_as_array {
+sub overload_file_as_array() {
     $_[1]->assert_tied_file;
 }
 
-sub overload_scalar_to_file {
+sub overload_file_as_dbm() {
+    $_[1]->assert_open_dbm;
+}
+
+sub overload_scalar_to_file() {
     local $\;
     $_[1]->print($_[2]);
     $_[1];
 }
 
-sub overload_file_as_scalar {
-    my $slurp = $_[1]->slurp;
-    return \$slurp;
+sub overload_file_as_scalar() {
+    my $scalar = $_[1]->scalar;
+    return \$scalar;
 }
 
-sub overload_file_to_scalar {
-    $_[2] = $_[1]->slurp;
+sub overload_file_to_scalar() {
+    $_[2] = $_[1]->scalar;
 }
 
-sub overload_file_addto_scalar {
-    $_[2] .= $_[1]->slurp;
+sub overload_file_addto_scalar() {
+    $_[2] .= $_[1]->scalar;
 }
 
 sub overload_socket_as_code {
-    my $self = shift;
     sub {
         my $coderef = shift;
         while ($self->is_open) {
@@ -977,9 +978,9 @@ sub overload_socket_as_code {
     }
 }
 
-sub overload_file_to_socket {
+sub overload_file_to_socket() {
     local $\;
-    $_[1]->print($_[2]->slurp);
+    $_[1]->print($_[2]->scalar);
     $_[1]->close;
 }
 
@@ -1061,6 +1062,9 @@ or:
         $string_out->print($line);
     }
 
+    # And STDERR too
+    "Warning Danger Abort!\n" > io'=';
+
 =head1 SYNOPSIS IV
 
     use IO::All;
@@ -1097,10 +1101,10 @@ idioms. It exports a single function called C<io>, which returns a new
 IO::All object. And that object can do it all!
 
 The IO::All object is a proxy for IO::File, IO::Dir, IO::Socket,
-IO::String, Tie::File and File::ReadBackwards. You can use most of the
-methods found in these classes and in IO::Handle (which they all inherit
-from). IO::All is easily subclassable. You can override any methods and
-also add new methods of your own.
+IO::String, Tie::File and File::ReadBackwards; as well as the DBM
+modules. You can use most of the methods found in these classes and in
+IO::Handle (which they inherit from). IO::All is easily subclassable.
+You can override any methods and also add new methods of your own.
 
 Optionally, every IO::All object can be tied to itself. This means that
 you can use most perl IO builtins on it: readline, <>, getc, print,
@@ -1120,7 +1124,7 @@ determined by the usage context. That means you can replace this:
 
 with this:
 
-    my $stuff < io('./mystuff');
+    my $stuff < io'./mystuff';
 
 And that is a B<good thing>!
 
@@ -1129,25 +1133,14 @@ And that is a B<good thing>!
 The use statement for IO::All can be passed several options:
 
     use IO::All;
-    use IO::All '-base';
     use IO::All '-tie';
     use IO::All '-lock';
+    use IO::All '-base';
 
 With the exception of '-base', these options are simply defaults that
 are passed on to every C<io> function within the program.
 
 =head2 Options
-
-=over 4
-
-=item * -base
-
-Boolean. This option inherited from Spiffy, make the current package a
-subclass of IO::All (which is a subclass of Spiffy). The option is also
-available to packages that want to use the new subclass as a base class.
-
-    package IO::Different;
-    use IO::All '-base';
 
 =over 4
 
@@ -1173,6 +1166,16 @@ be closed. This is not a problem in Perl 5.6.1 or 5.8.1 and greater.
 
 Boolean. This option tells the object to flock the filehandle after open.
 
+=item * -base
+
+Boolean. This option which is inherited from Spiffy, makes the current
+package a subclass of IO::All (which is a subclass of Spiffy). The
+option is also available to packages that want to use the new subclass
+as a base class.
+
+    package IO::Different;
+    use IO::All '-base';
+
 =back
 
 =head1 COOKBOOK
@@ -1183,9 +1186,13 @@ with IO::All.
 =head2 Operator Overloading
 
 IO::All objects stringify to their file or directory name. Here we print the
-contents of a directory:
+contents of the current directory:
 
     perl -MIO::All -le 'print for io(".")->all'
+
+or:
+
+    perl -MIO::All -le 'print for @{io"."}'
 
 '>' and '<' move data between strings and files:
 
@@ -1201,11 +1208,16 @@ appended to.
 
 An IO::All file used as an array reference becomes tied using Tie::File:
 
-    $file = io('file');
+    $file = io'file';
     # Print last line of file
     print $file->[-1];
     # Insert new line in middle of file
     $file->[$#$file / 2] = 'New line';
+
+An IO::All directory used as an array reference, will expose each file or
+subdirectory as an element of the array.
+
+    print "$_\n" for @{io 'dir'};
 
 IO::All directories used as hashes have file names as keys, and IO::All
 objects as values:
@@ -1253,7 +1265,7 @@ lock. If all goes well the child will print 3 lines.
 This simple example will read lines from a file forever. When the last
 line is read, it will reopen the file and read the first one again.
 
-    my $io = io('file1.txt');
+    my $io = io'file1.txt';
     $io->autoclose(1);
     while (my $line = $io->getline || $io->getline) {
         print $line;
@@ -1313,6 +1325,26 @@ another terminal window). It should print the 3 data lines each time.
 
 Note that it is important to close the socket if the server is forking,
 or else the socket won't go out of scope and close.
+
+=head2 DBM Files
+
+IO::All file objects used as a hash reference, treat the file as a DBM tied to
+a hash. Here I write my DB record to STDERR:
+
+    io("names.db")->{ingy} > io'=';
+
+Since their are several DBM formats available in Perl, IO::All picks the first
+one of these that is installed on your system:
+
+    DB_File GDBM_File NDBM_File ODBM_File SDBM_File
+
+You can override which DBM you want, either globally:
+
+    IO::All->dbm('NDBM_File');
+
+or per IO::All object:
+
+    my @keys = keys %{io('mydbm')->dbm('SDBM_File')};
 
 =head2 File Subclassing
 
@@ -1498,6 +1530,10 @@ Same as printf, but sets the file mode to '>>'.
 
 Same as println, but sets the file mode to '>>'.
 
+=item * atime()
+
+Last access time in seconds since the epoch (from stat)
+
 =item * autoclose()
 
 By default, IO::All will close an object opened for input when EOF is
@@ -1521,6 +1557,14 @@ Sets the object to 'backwards' mode. All subsequent C<getline>
 operations will read backwards from the end of the file.
 
 Requires Uri Guttman's File::ReadBackwards CPAN module.
+
+=item * blksize()
+
+Preferred block size for file system I/O (from stat)
+
+=item * blocks()
+
+Actual number of blocks allocated (from stat)
 
 =item * block_size()
 
@@ -1552,6 +1596,26 @@ the buffer.
 
 Proxy for IO::Handle::close()
 
+=item * ctime()
+
+Inode change time in seconds since the epoch (from stat)
+
+=item * dbm()
+
+This method takes the names of one or more DBM modules. The first one that is
+available is used to process the dbm file. The method returns the IO::All
+object so that you can chain it.
+
+    io('mydbm')->dbm('NDBM_File', 'SDBM_File')->{author} = 'ingy';
+
+=item * device()
+
+Device number of filesystem (from stat)
+
+=item * device_id()
+
+Device identifier for special files only (from stat)
+
 =item * domain()
 
 Set the domain name or ip address that a socket should use.
@@ -1581,6 +1645,10 @@ Calls IO::File::getline(). You can pass in an optional record separator.
 
 Calls IO::File::getlines(). You can pass in an optional record separator.
 
+=item * gid()
+
+Numeric group id of file's owner (from stat)
+
 =item * hash()
 
 This method will return a reference to a tied hash representing the
@@ -1589,6 +1657,10 @@ keys are the file names, and the values call lstat, and deleting a key
 deletes the file.
 
 See IO::Dir for more information on Tied Directories.
+
+=item * inode()
+
+Inode number (from stat)
 
 =item * io_handle()
 
@@ -1634,6 +1706,14 @@ Set the mode for which the file should be opened. Examples:
     $io->mode('>>');
     $io->mode(O_RDONLY);
 
+=item * modes()
+
+File mode - type and permissions (from stat)
+
+=item * mtime()
+
+Last modify time in seconds since the epoch (from stat)
+
 =item * name()
 
 Return the name of the file or directory represented by the IO::All
@@ -1643,6 +1723,10 @@ object.
 
 For a directory, this will return a new IO::All object for each file
 or subdirectory in the directory. Return undef on EOD.
+
+=item * nlink()
+
+Number of hard links to the file (from stat)
 
 =item * open()
 
@@ -1709,9 +1793,18 @@ Proxy for IO::Dir::rewind()
 
 Delete the directory represented by the IO::All object.
 
+=item * scalar()
+
+Same as slurp, but ignores list context and always returns one string. Nice to
+use when you, for instance, want to use as a function argument where list
+context is implied:
+
+    compare(io('file1')->scalar, io('file2')->scalar);
+
 =item * seek()
 
-Proxy for IO::Handle::seek()
+Proxy for IO::Handle::seek(). If you use seek on an unopened file, it will be
+opened for both read and write.
 
 =item * send()
 
@@ -1720,6 +1813,10 @@ Proxy for IO::Socket::send()
 =item * shutdown()
 
 Proxy for IO::Socket::shutdown()
+
+=item * size()
+
+Total size of file in bytes (from stat)
 
 =item * slurp()
 
@@ -1771,6 +1868,10 @@ Returns a string indicated the type of io object. Possible values are:
 
 Returns undef if type is not determinable.
 
+=item * uid()
+
+Numeric user id of file's owner (from stat)
+
 =item * unlink
 
 Unlink (delete) the file represented by the IO::All object.
@@ -1804,7 +1905,7 @@ other hand, this module relies heavily on very stable existing IO
 modules; so it may work fairly well.
 
 I am sure you will find many unexpected "features". Please send all
-problems, ideas and suggestions to INGY@cpan.org.
+problems, ideas and suggestions to ingy@cpan.org.
 
 =head2 Known Bugs and Deficiencies
 
@@ -1828,7 +1929,7 @@ module.
 
 =head1 AUTHOR
 
-Brian Ingerson <INGY@cpan.org>
+Brian Ingerson <ingy@cpan.org>
 
 =head1 COPYRIGHT
 

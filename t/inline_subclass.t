@@ -1,6 +1,7 @@
+use lib 't', 'lib';
 use strict;
+use warnings;
 use Test::More tests => 5;
-use lib 't';
 use IO_All_Test;
 
 IO::Dumper->import;

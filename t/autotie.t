@@ -1,7 +1,8 @@
+use lib 't', 'lib';
 use strict;
+use warnings;
 use Test::More;
 use IO::All;
-use lib 't';
 use IO_All_Test;
 
 my @lines = read_file_lines('t/mystuff');

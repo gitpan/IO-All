@@ -1,4 +1,15 @@
 ---
+version: 0.18
+date:    Sun May 16 17:40:37 PDT 2004
+changes:
+- Get the shift out
+- Support DBM files as has overload
+- Add ->scalar() method
+- close orphaned socket on fork after accept
+- seek now opens file for read/write
+- polish subtle behaviour
+- added stat functions
+---
 version: 0.17
 date:    Fri May  7 01:14:36 PDT 2004
 changes:

@@ -1,8 +1,10 @@
+use lib 't', 'lib';
 use strict;
+use warnings;
 use Test::More;
 use IO::All;
-use lib 't';
 use IO_All_Test;
+
 plan((eval {require File::ReadBackwards; 1})
     ? (tests => 2)
     : (skip_all => "requires File::ReadBackwards")

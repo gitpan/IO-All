@@ -9,6 +9,7 @@ version_from('lib/IO/All.pm');
 requires(qw(
     perl 5.6.1
     Spiffy 0.16
+    Filter::Util::Call 0
 ));
 
 check_nmake();

@@ -1,8 +1,8 @@
+use lib 't', 'lib';
 use strict;
 use warnings;
 use Test::More tests => 9;
 use IO::All;
-use lib 't';
 use IO_All_Test;
 
 # Print name and first line of all files in a directory

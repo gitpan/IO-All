@@ -1,5 +1,6 @@
 use lib 't', 'lib';
 use strict;
+use warnings;
 use Test::More;
 use IO_All_Test;
 use IO::All;

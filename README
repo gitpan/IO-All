@@ -28,7 +28,7 @@ SYNOPSIS
 
         my $stuff < io('./mystuff');
         io('./morestuff') >> $stuff;
-        io(./allstuff') << $stuff;
+        io('./allstuff') << $stuff;
 
     or:
 
@@ -69,6 +69,9 @@ SYNOPSIS III
             $string_out->print($line);
         }
 
+        # And STDERR too
+        "Warning Danger Abort!\n" > io'=';
+
 SYNOPSIS IV
         use IO::All;
     
@@ -79,6 +82,10 @@ SYNOPSIS IV
             io('./mylog')->appendln(localtime() . ' - $msg');
         }
         $socket->close;
+
+        # A single statement web server for static files and cgis too
+        io(":8080")->accept("-fork")->
+          (sub { $_[0] < io(-x $1 ? "./$1 |" : $1) if /^GET \/(.*) / });
 
 SYNOPSIS V
         use IO::All;
@@ -99,10 +106,10 @@ DESCRIPTION
     IO::All object. And that object can do it all!
 
     The IO::All object is a proxy for IO::File, IO::Dir, IO::Socket,
-    IO::String, Tie::File and File::ReadBackwards. You can use most of the
-    methods found in these classes and in IO::Handle (which they all inherit
-    from). IO::All is easily subclassable. You can override any methods and
-    also add new methods of your own.
+    IO::String, Tie::File and File::ReadBackwards; as well as the DBM
+    modules. You can use most of the methods found in these classes and in
+    IO::Handle (which they inherit from). IO::All is easily subclassable.
+    You can override any methods and also add new methods of your own.
 
     Optionally, every IO::All object can be tied to itself. This means that
     you can use most perl IO builtins on it: readline, <>, getc, print,
@@ -122,24 +129,20 @@ DESCRIPTION
 
     with this:
 
-        my $stuff < io('./mystuff');
+        my $stuff < io'./mystuff';
 
     And that is a good thing!
 
 USAGE
     The use statement for IO::All can be passed several options:
 
-        use IO::All (-tie => 
-                     -lock => 1,
-                    );
+        use IO::All;
+        use IO::All '-tie';
+        use IO::All '-lock';
+        use IO::All '-base';
 
-    All options begin with a '-' and come in two flavors: boolean options
-    and key/value pair options. Boolean options can be followed by a 0 or a
-    1, or can stand alone; in which case they have an assumed value of 1.
-    You can specify all options in any order without confusing IO::All.
-
-    These options are simply defaults that are passed on to every "io"
-    function within the program.
+    With the exception of '-base', these options are simply defaults that
+    are passed on to every "io" function within the program.
 
   Options
     * -tie
@@ -164,22 +167,35 @@ USAGE
         Boolean. This option tells the object to flock the filehandle after
         open.
 
+    * -base
+        Boolean. This option which is inherited from Spiffy, makes the
+        current package a subclass of IO::All (which is a subclass of
+        Spiffy). The option is also available to packages that want to use
+        the new subclass as a base class.
+
+            package IO::Different;
+            use IO::All '-base';
+
 COOKBOOK
     This section describes some various things that you can easily cook up
     with IO::All.
 
   Operator Overloading
-    IO::All objects stringify to their file or directory name. This command
-    is a long way of doing "ls -1":
+    IO::All objects stringify to their file or directory name. Here we print
+    the contents of the current directory:
 
         perl -MIO::All -le 'print for io(".")->all'
 
+    or:
+
+        perl -MIO::All -le 'print for @{io"."}'
+
     '>' and '<' move data between strings and files:
 
-        $content < io('file1');
-        $content > io('file2');
-        io('file2') > $content2;
-        io('file3') < $content2;
+        $content1 < io('file1');
+        $content1 > io('file2');
+        io('file2') > $content3;
+        io('file3') < $content3;
         io('file3') > io('file4');
         io('file5') < io('file4');
 
@@ -188,11 +204,16 @@ COOKBOOK
 
     An IO::All file used as an array reference becomes tied using Tie::File:
 
-        $file = io('file');
+        $file = io'file';
         # Print last line of file
         print $file->[-1];
         # Insert new line in middle of file
-        $file->[$#{$file} / 2] = 'New line';
+        $file->[$#$file / 2] = 'New line';
+
+    An IO::All directory used as an array reference, will expose each file
+    or subdirectory as an element of the array.
+
+        print "$_\n" for @{io 'dir'};
 
     IO::All directories used as hashes have file names as keys, and IO::All
     objects as values:
@@ -201,7 +222,7 @@ COOKBOOK
 
     Files used as scalar references get slurped:
 
-            print ${io('dir')->{'foo.txt'}};
+        print ${io('dir')->{'foo.txt'}};
 
   File Locking
     IO::All makes it very easy to lock files. Just use the "-lock" flag.
@@ -239,7 +260,7 @@ COOKBOOK
     This simple example will read lines from a file forever. When the last
     line is read, it will reopen the file and read the first one again.
 
-        my $io = io('file1.txt');
+        my $io = io'file1.txt';
         $io->autoclose(1);
         while (my $line = $io->getline || $io->getline) {
             print $line;
@@ -297,6 +318,25 @@ COOKBOOK
 
     Note that it is important to close the socket if the server is forking,
     or else the socket won't go out of scope and close.
+
+  DBM Files
+    IO::All file objects used as a hash reference, treat the file as a DBM
+    tied to a hash. Here I write my DB record to STDERR:
+
+        io("names.db")->{ingy} > io'=';
+
+    Since their are several DBM formats available in Perl, IO::All picks the
+    first one of these that is installed on your system:
+
+        DB_File GDBM_File NDBM_File ODBM_File SDBM_File
+
+    You can override which DBM you want, either globally:
+
+        IO::All->dbm('NDBM_File');
+
+    or per IO::All object:
+
+        my @keys = keys %{io('mydbm')->dbm('SDBM_File')};
 
   File Subclassing
     Subclassing is easy with IO::All. Just create a new module and use
@@ -375,11 +415,13 @@ CONSTRUCTOR
     * new()
             new(file_descriptor,
                 '-',
+                '=',
                 '$',
                 -file_name => $file_name,
                 -file_handle => $file_handle,
                 -dir_name => $directory_name,
                 -dir_handle => $directory_handle,
+                '-tie',
                );
             
         File descriptor is a file/directory name or file/directory handle or
@@ -449,6 +491,9 @@ INSTANCE METHODS
     * appendln()
         Same as println, but sets the file mode to '>>'.
 
+    * atime()
+        Last access time in seconds since the epoch (from stat)
+
     * autoclose()
         By default, IO::All will close an object opened for input when EOF
         is reached. By closing the handle early, one can immediately do
@@ -469,6 +514,12 @@ INSTANCE METHODS
         operations will read backwards from the end of the file.
 
         Requires Uri Guttman's File::ReadBackwards CPAN module.
+
+    * blksize()
+        Preferred block size for file system I/O (from stat)
+
+    * blocks()
+        Actual number of blocks allocated (from stat)
 
     * block_size()
         The default length to be used for "read()" and "sysread()" calls.
@@ -496,6 +547,22 @@ INSTANCE METHODS
     * close()
         Proxy for IO::Handle::close()
 
+    * ctime()
+        Inode change time in seconds since the epoch (from stat)
+
+    * dbm()
+        This method takes the names of one or more DBM modules. The first
+        one that is available is used to process the dbm file. The method
+        returns the IO::All object so that you can chain it.
+
+            io('mydbm')->dbm('NDBM_File', 'SDBM_File')->{author} = 'ingy';
+
+    * device()
+        Device number of filesystem (from stat)
+
+    * device_id()
+        Device identifier for special files only (from stat)
+
     * domain()
         Set the domain name or ip address that a socket should use.
 
@@ -520,6 +587,9 @@ INSTANCE METHODS
         Calls IO::File::getlines(). You can pass in an optional record
         separator.
 
+    * gid()
+        Numeric group id of file's owner (from stat)
+
     * hash()
         This method will return a reference to a tied hash representing the
         directory. This allows you to treat a directory like a hash, where
@@ -527,6 +597,9 @@ INSTANCE METHODS
         a key deletes the file.
 
         See IO::Dir for more information on Tied Directories.
+
+    * inode()
+        Inode number (from stat)
 
     * io_handle()
         Direct access to the actual IO::Handle object being used.
@@ -563,6 +636,12 @@ INSTANCE METHODS
             $io->mode('>>');
             $io->mode(O_RDONLY);
 
+    * modes()
+        File mode - type and permissions (from stat)
+
+    * mtime()
+        Last modify time in seconds since the epoch (from stat)
+
     * name()
         Return the name of the file or directory represented by the IO::All
         object.
@@ -570,6 +649,9 @@ INSTANCE METHODS
     * next()
         For a directory, this will return a new IO::All object for each file
         or subdirectory in the directory. Return undef on EOD.
+
+    * nlink()
+        Number of hard links to the file (from stat)
 
     * open()
         Open the IO::All object. Takes two optional arguments "mode" and
@@ -626,14 +708,25 @@ INSTANCE METHODS
     * rmdir()
         Delete the directory represented by the IO::All object.
 
+    * scalar()
+        Same as slurp, but ignores list context and always returns one
+        string. Nice to use when you, for instance, want to use as a
+        function argument where list context is implied:
+
+            compare(io('file1')->scalar, io('file2')->scalar);
+
     * seek()
-        Proxy for IO::Handle::seek()
+        Proxy for IO::Handle::seek(). If you use seek on an unopened file,
+        it will be opened for both read and write.
 
     * send()
         Proxy for IO::Socket::send()
 
     * shutdown()
         Proxy for IO::Socket::shutdown()
+
+    * size()
+        Total size of file in bytes (from stat)
 
     * slurp()
         Read all file content in one operation. Returns the file content as
@@ -665,6 +758,22 @@ INSTANCE METHODS
     * truncate()
         Proxy for IO::Handle::truncate()
 
+    * type()
+        Returns a string indicated the type of io object. Possible values
+        are:
+
+            file
+            dir
+            link
+            socket
+            string
+            pipe
+
+        Returns undef if type is not determinable.
+
+    * uid()
+        Numeric user id of file's owner (from stat)
+
     * unlink
         Unlink (delete) the file represented by the IO::All object.
 
@@ -687,12 +796,12 @@ STABILITY
     compatibility with other versions of IO::All if I can find an easier and
     clearer way to do a particular thing.
 
-    This is the first revision of this module. IO is tricky stuff. There is
-    definitely more work to be done. On the other hand, this module relies
-    heavily on very stable existing IO modules; so it may work fairly well.
+    IO is tricky stuff. There is definitely more work to be done. On the
+    other hand, this module relies heavily on very stable existing IO
+    modules; so it may work fairly well.
 
     I am sure you will find many unexpected "features". Please send all
-    problems, ideas and suggestions to INGY@cpan.org.
+    problems, ideas and suggestions to ingy@cpan.org.
 
   Known Bugs and Deficiencies
     Not all possible combinations of objects and methods have been tested.
@@ -706,13 +815,14 @@ STABILITY
     Support for format_write and other format stuff is not supported yet.
 
 SEE ALSO
-    IO::Handle, IO::File, IO::Dir, IO::Socket, IO::String, IO::ReadBackwards
+    IO::Handle, IO::File, IO::Dir, IO::Socket, IO::String,
+    IO::ReadBackwards, Tie::File
 
     Also check out the Spiffy module if you are interested in extending this
     module.
 
 AUTHOR
-    Brian Ingerson <INGY@cpan.org>
+    Brian Ingerson <ingy@cpan.org>
 
 COPYRIGHT
     Copyright (c) 2004. Brian Ingerson. All rights reserved.

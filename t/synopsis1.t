@@ -1,7 +1,8 @@
+use lib 't', 'lib';
 use strict;
+use warnings;
 use Test::More tests => 6;
 use IO::All;
-use lib 't';
 use IO_All_Test;
 
 # Combine two files into a third

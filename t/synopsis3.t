@@ -1,7 +1,7 @@
+use lib 't', 'lib';
 use strict;
 use warnings;
 use Test::More;
-use lib 't';
 use IO_All_Test;
 use Config;
 

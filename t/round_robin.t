@@ -1,4 +1,6 @@
+use lib 't', 'lib';
 use strict;
+use warnings;
 use Test::More tests => 9;
 use IO::All;
 
