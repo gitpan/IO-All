@@ -6,7 +6,7 @@ use Spiffy qw(-base !attribute);
 use Fcntl qw(:DEFAULT :flock);
 use Symbol;
 use File::Spec;
-our $VERSION = '0.15';
+our $VERSION = '0.16';
 our @EXPORT = qw(io);
 
 spiffy_constructor 'io';
@@ -23,18 +23,15 @@ attribute domain_default => 'localhost';
 attribute flags => {};
 attribute handle => undef;
 attribute io_handle => undef;
-attribute tied_file => undef;
-attribute is_dir => 0;
-attribute is_file => 0;
-attribute is_link => 0;
 attribute is_open => 0;
-attribute is_socket => 0;
-attribute is_string => 0;
-attribute use_lock => 0;
 attribute mode => undef;
 attribute name => undef;
 attribute perms => undef;
 attribute port => undef;
+attribute separator => $/;
+attribute tied_file => undef;
+attribute type => undef;
+attribute use_lock => 0;
 
 sub proxy; 
 proxy 'autoflush';
@@ -74,29 +71,29 @@ sub init {
         require IO::File;
         $self->io_handle(IO::File->new);
         $self->name($args->{-file_name});
-        $self->is_file(1);
+        $self->type('file');
     }
     elsif (defined $args->{-dir_name}) {
         require IO::Dir;
         $self->io_handle(IO::Dir->new);
         $self->name($args->{-dir_name});
-        $self->is_dir(1);
+        $self->type('dir');
     }
     elsif (defined $args->{-socket_name}) {
         $self->name($args->{-socket_name});
-        $self->is_socket(1);
+        $self->type('socket');
     }
     elsif (defined $args->{-file_handle}) {
         $self->handle($args->{-file_handle});
-        $self->is_file(1);
+        $self->type('file');
     }
     elsif (defined $args->{-dir_handle}) {
         $self->handle($args->{-dir_handle});
-        $self->is_dir(1);
+        $self->type('dir');
     }
     elsif (defined $args->{-socket_handle}) {
         $self->handle($args->{-socket_handle});
-        $self->is_socket(1);
+        $self->type('socket');
     }
     unless (defined $self->name or defined $self->handle) {
         if (@values) {
@@ -113,21 +110,24 @@ sub init {
             $self->temporary_file;
         }
     }
-    while (defined (my $name = $self->name)) {
-        $self->is_socket(1), last if $name =~ /^[\w\-\.]*:\d{1,5}$/;
-        $self->is_file(1), last if -f $name;
-        $self->is_dir(1), last if -d $name;
-        $self->is_link(1), last if -l $name;
-        last;
+    if (defined (my $name = $self->name)) {
+        my $type = 
+          $name =~ /(^\|.+|.+\|)$/ ? 'pipe' :
+          $name =~ /^[\w\-\.]*:\d{1,5}$/ ? 'socket' :
+          -f $name ? 'file' :
+          -d $name ? 'dir' :
+          -l $name ? 'link' :
+          undef;
+        $self->type($type);
     }
     return $self;
 }
 
-sub XXX {
-    my $self = shift;
-    require Data::Dumper;
-    print Data::Dumper::Dumper(@_);
-}
+# sub XXX {
+#     my $self = shift;
+#     require Data::Dumper;
+#     print Data::Dumper::Dumper(@_);
+# }
 
 #===============================================================================
 # Tie Interface
@@ -201,8 +201,8 @@ sub all {
     my @all;
     while (my $io = $self->next) {
         push @all, $io;
-        push @all, $io->all 
-          if $flags->{-r} and $io->is_dir;
+        push @all, $io->all('-r')
+          if $flags->{-r} and $io->type eq 'dir';
     }
     return @all if $flags->{-no_sort};
     return sort {$a->name cmp $b->name} @all;
@@ -215,7 +215,7 @@ sub All_Dirs {
 
 sub all_dirs {
     my $self = shift;
-    grep $_->is_dir, $self->all(@_);
+    grep {$_->type eq 'dir'} $self->all(@_);
 }
 
 sub All_Files {
@@ -225,7 +225,7 @@ sub All_Files {
 
 sub all_files {
     my $self = shift;
-    grep $_->is_file, $self->all(@_);
+    grep {$_->type eq 'file'} $self->all(@_);
 }
 
 sub All_Links {
@@ -235,7 +235,7 @@ sub All_Links {
 
 sub all_links {
     my $self = shift;
-    grep $_->is_link, $self->all(@_);
+    grep {$_->type eq 'link'} $self->all(@_);
 }
 
 sub append {
@@ -283,6 +283,7 @@ sub close {
     my $io_handle = $self->io_handle;
     $self->unlock;
     $self->io_handle(undef);
+    $self->mode(undef);
     $io_handle->close(@_);
 }
 
@@ -294,7 +295,7 @@ sub getline {
     $self->assert_open('<');
     my $line;
     {
-        local $/ = shift(@values) if @values;
+        local $/ = @values ? shift(@values) : $self->separator;
         $line = $self->io_handle->getline;
     }
     $self->error_check;
@@ -313,7 +314,7 @@ sub getlines {
     $self->assert_open('<');
     my @lines;
     {
-        local $/ = shift(@values) if @values;
+        local $/ = @values ? shift(@values) : $self->separator;
         @lines = $self->io_handle->getlines;
     }
     $self->error_check;
@@ -323,6 +324,31 @@ sub getlines {
     return (@lines) or
            $self->autoclose && $self->close && () or
            ();
+}
+
+sub is_dir {
+    my $self = shift;
+    ($self->type || '') eq 'dir';
+}
+
+sub is_file {
+    my $self = shift;
+    ($self->type || '') eq 'file';
+}
+
+sub is_link {
+    my $self = shift;
+    ($self->type || '') eq 'link';
+}
+
+sub is_socket {
+    my $self = shift;
+    ($self->type || '') eq 'socket';
+}
+
+sub is_string {
+    my $self = shift;
+    ($self->type || '') eq 'string';
 }
 
 sub length {
@@ -379,7 +405,7 @@ sub println {
 sub read {
     my $self = shift;
     $self->assert_open('<');
-    my $length = (@_ or $self->is_dir)
+    my $length = (@_ or $self->type eq 'dir')
     ? $self->io_handle->read(@_)
     : $self->io_handle->read(
         ${$self->buffer}, 
@@ -408,12 +434,14 @@ sub shutdown {
 
 sub slurp {
     my $self = shift;
-    $self->assert_open_file('<');
+    $self->assert_open('<');
     local $/;
     my $slurp = $self->io_handle->getline;
     $self->error_check;
     $self->autoclose && $self->close;
-    return wantarray ? ($slurp =~ /(.*\n)/g) : $slurp;
+    return $slurp unless wantarray;
+    my $separator = $self->separator;
+    split /(?<=\Q$separator\E)/, $slurp;
 }
 
 sub temporary_file {
@@ -457,7 +485,8 @@ sub write {
 sub throw {
     my $self = shift;
     require Carp;
-    Carp::croak(@_);
+#     Carp::croak(@_);
+    Carp::confess(@_);
 }
 
 #===============================================================================
@@ -479,10 +508,10 @@ sub assert_dirpath {
 sub assert_open {
     my $self = shift;
     return if $self->is_open;
-    return $self->assert_open_file(@_) if $self->is_file;
-    return $self->assert_open_dir(@_) if $self->is_dir;
-    return $self->assert_open_socket(@_) if $self->is_socket;
-    return $self->assert_open_file(@_); # XXX guess
+    my $type = $self->type || '';
+    return $self->assert_open_file(@_) unless $type; 
+    my $method = "assert_open_$type";
+    return $self->$method(@_);
 }
 
 sub assert_open_backwards {
@@ -500,7 +529,7 @@ sub assert_open_dir {
     my $self = shift;
     return if $self->is_open;
     require IO::Dir;
-    $self->is_dir(1);
+    $self->type('dir');
     $self->io_handle(IO::Dir->new)
       unless defined $self->io_handle;
     $self->open;
@@ -509,7 +538,7 @@ sub assert_open_dir {
 sub assert_open_file {
     my $self = shift;
     return if $self->is_open;
-    $self->is_file(1);
+    $self->type('file');
     require IO::File;
     $self->io_handle(IO::File->new)
       unless defined $self->io_handle;
@@ -517,10 +546,26 @@ sub assert_open_file {
     $self->open;
 }
 
+sub assert_open_pipe {
+    my $self = shift;
+    return if $self->is_open;
+    require IO::Handle;
+    $self->io_handle(IO::Handle->new)
+      unless defined $self->io_handle;
+    my $command = $self->name;
+    $command =~ s/(^\||\|$)//;
+    my $mode = shift;
+    my $pipe_mode = 
+      $mode eq '>' ? '|-' :
+      $mode eq '<' ? '-|' :
+      $self->throw("Invalid usage mode '$mode' for pipe");
+    CORE::open($self->io_handle, $pipe_mode, $command);
+}
+
 sub assert_open_socket {
     my $self = shift;
     return if $self->is_open;
-    $self->is_socket(1);
+    $self->type('socket');
     $self->is_open(1);
     require IO::Socket;
     my ($flags) = $self->parse_arguments(@_);
@@ -666,9 +711,10 @@ sub open_name {
     my $self = shift;
     return $self->open_std if $self->descriptor eq '-';
     return $self->open_string if $self->descriptor eq '$';
-    return $self->open_file(@_) if $self->is_file;
-    return $self->open_dir(@_) if $self->is_dir;
-    return if $self->is_socket;
+    return $self->open_file(@_) unless defined $self->type;
+    return $self->open_file(@_) if $self->type eq 'file';
+    return $self->open_dir(@_) if $self->type eq 'dir';
+    return if $self->type eq 'socket';
     return $self->open_file(@_);
 }
 
@@ -758,6 +804,7 @@ $SIG{__WARN__} = sub {
 };
     
 use overload '""' => 'overload_stringify';
+use overload '|' => 'overload_bitwise_or';
 use overload '<<' => 'overload_left_bitshift';
 use overload '>>' => 'overload_right_bitshift';
 use overload '<' => 'overload_less_than';
@@ -765,9 +812,21 @@ use overload '>' => 'overload_greater_than';
 use overload '${}' => 'overload_string_deref';
 use overload '@{}' => 'overload_array_deref';
 use overload '%{}' => 'overload_hash_deref';
+use overload '&{}' => 'overload_code_deref';
+
+sub overload_bitwise_or { shift->overload_handler(@_, '|') }
+sub overload_left_bitshift { shift->overload_handler(@_, '<<') }
+sub overload_right_bitshift { shift->overload_handler(@_, '>>') }
+sub overload_less_than { shift->overload_handler(@_, '<') }
+sub overload_greater_than { shift->overload_handler(@_, '>') }
+sub overload_string_deref { shift->overload_handler(@_, '${}') }
+sub overload_array_deref { shift->overload_handler(@_, '@{}') }
+sub overload_hash_deref { shift->overload_handler(@_, '%{}') }
+sub overload_code_deref { shift->overload_handler(@_, '&{}') }
 
 sub overload_table {
-    return {
+    my $self = shift;
+    *$self->{overload_table} ||= {
         'file < scalar' => 'overload_print',
         'file < scalar swap' => 'overload_slurp_to',
         'file << scalar' => 'overload_append',
@@ -787,17 +846,14 @@ sub overload_table {
         'file @{} scalar' => 'overload_file_tie',
         'dir @{} scalar' => 'overload_dir_all',
         'dir %{} scalar' => 'overload_dir_hash',
-#         'file %{} scalar' => 'overload_file_stat',
+        
+        'file | scalar' => 'overload_pipe_to',
+        'file | scalar swap' => 'overload_pipe_from',
+        
+        'socket < file' => 'overload_socket_write_file',
+        'socket &{} scalar' => 'overload_socket_code',
     };
 }
-
-sub overload_left_bitshift { shift->overload_handler(@_, '<<') }
-sub overload_right_bitshift { shift->overload_handler(@_, '>>') }
-sub overload_less_than { shift->overload_handler(@_, '<') }
-sub overload_greater_than { shift->overload_handler(@_, '>') }
-sub overload_string_deref { shift->overload_handler(@_, '${}') }
-sub overload_array_deref { shift->overload_handler(@_, '@{}') }
-sub overload_hash_deref { shift->overload_handler(@_, '%{}') }
 
 sub overload_handler {
     my ($self) = @_;
@@ -808,19 +864,22 @@ sub overload_handler {
 sub get_overload_method {
     my ($x, $self, $other, $swap, $operator) = @_;
     my $arg1_type = 
-      $self->is_file ? 'file' :
-      $self->is_dir ? 'dir' :
-      $self->is_socket ? 'socket' :
+      defined $self->type ? $self->type :
       defined $self->name ? 'file' :
+      defined $self->handle ? 'file' :
       'unknown';
+    $arg1_type =~ s/^(pipe)$/file/;
+    my $ref2 = ref($other);
     my $arg2_type =
-      not(ref $other) ? 'scalar' :
+      not($ref2) ? 'scalar' :
+      $ref2 eq 'CODE' ? 'code' :
+      $ref2 eq 'ARRAY' ? 'array' :
+      $ref2 eq 'HASH' ? 'hash' :
       not($other->isa('IO::All')) ? 'ref' :
-      $other->is_file ? 'file' :
-      $other->is_dir ? 'dir' :
-      $other->is_socket ? 'socket' :
-      defined $self->name ? 'file' :
+      defined $other->type ? $other->type :
+      defined $other->name ? 'file' :
       'unknown';
+    $arg2_type =~ s/^(pipe)$/file/;
     my $key = "$arg1_type $operator $arg2_type" . ($swap ? ' swap' : '');
     my $table = $self->overload_table;
     return defined $table->{$key} 
@@ -845,29 +904,27 @@ sub overload_noop {
     return;
 }
 
-sub overload_slurp_ref {
-    my $slurp = $_[1]->slurp;
-    return \$slurp;
-}
-
-sub overload_slurp_to {
-    $_[2] = $_[1]->slurp;
-}
-
-sub overload_slurp_append {
-    $_[2] .= $_[1]->slurp;
-}
-
-sub overload_print {
-    $_[1]->print($_[2]);
-}
-
 sub overload_append {
     $_[1]->append($_[2]);
+    $_[1];
 }
 
-sub overload_file_tie {
-    $_[1]->assert_tied_file;
+sub overload_cat_to {
+    $_[2]->append(scalar $_[1]->slurp);
+}
+
+sub overload_cat_from {
+    $_[1]->append(scalar $_[2]->slurp);
+}
+
+sub overload_copy_to {
+    local $\;
+    $_[2]->print(scalar $_[1]->slurp);
+}
+
+sub overload_copy_from {
+    local $\;
+    $_[1]->print(scalar $_[2]->slurp);
 }
 
 sub overload_dir_all {
@@ -883,20 +940,55 @@ sub overload_dir_hash {
     };
 }
 
-sub overload_copy_to {
-    $_[2]->print(scalar $_[1]->slurp);
+sub overload_file_tie {
+    $_[1]->assert_tied_file;
 }
 
-sub overload_copy_from {
-    $_[1]->print(scalar $_[2]->slurp);
+sub overload_pipe_from {
+    $_[1]->type('pipe');
+    local $\;
+    $_[1]->print($_[2]);
 }
 
-sub overload_cat_to {
-    $_[2]->append(scalar $_[1]->slurp);
+sub overload_pipe_to {
+    $_[1]->type('pipe');
+    $_[2] = $_[1]->slurp;
 }
 
-sub overload_cat_from {
-    $_[1]->append(scalar $_[2]->slurp);
+sub overload_print {
+    local $\;
+    $_[1]->print($_[2]);
+    $_[1];
+}
+
+sub overload_slurp_ref {
+    my $slurp = $_[1]->slurp;
+    return \$slurp;
+}
+
+sub overload_slurp_to {
+    $_[2] = $_[1]->slurp;
+}
+
+sub overload_slurp_append {
+    $_[2] .= $_[1]->slurp;
+}
+
+sub overload_socket_code {
+    my $self = shift;
+    sub {
+        my $coderef = shift;
+        while ($self->is_open) {
+            $_ = $self->getline;
+            &$coderef($self);
+        }
+    }
+}
+
+sub overload_socket_write_file {
+    local $\;
+    $_[1]->print($_[2]->slurp);
+    $_[1]->close;
 }
 
 1;
@@ -989,6 +1081,10 @@ or:
     }
     $socket->close;
 
+    # A single statement web server for static files and cgis too
+    io(":8080")->accept("-fork")->
+      (sub { $_[0] < io(-x $1 ? "./$1 |" : $1) if /^GET \/(.*) / });
+
 =head1 SYNOPSIS V
 
     use IO::All;
@@ -1040,20 +1136,26 @@ And that is a B<good thing>!
 
 The use statement for IO::All can be passed several options:
 
-    use IO::All (-tie => 
-                 -lock => 1,
-                );
+    use IO::All;
+    use IO::All '-base';
+    use IO::All '-tie';
+    use IO::All '-lock';
 
-All options begin with a '-' and come in two flavors: boolean options
-and key/value pair options. Boolean options can be followed by a C<0>
-or a C<1>, or can stand alone; in which case they have an assumed
-value of C<1>. You can specify all options in any order without
-confusing IO::All.
-
-These options are simply defaults that are passed on to every C<io> function
-within the program.
+With the exception of '-base', these options are simply defaults that
+are passed on to every C<io> function within the program.
 
 =head2 Options
+
+=over 4
+
+=item * -base
+
+Boolean. This option inherited from Spiffy, make the current package a
+subclass of IO::All (which is a subclass of Spiffy). The option is also
+available to packages that want to use the new subclass as a base class.
+
+    package IO::Different;
+    use IO::All '-base';
 
 =over 4
 
@@ -1088,17 +1190,17 @@ with IO::All.
 
 =head2 Operator Overloading
 
-IO::All objects stringify to their file or directory name. This command is a
-long way of doing C<ls -1>:
+IO::All objects stringify to their file or directory name. Here we print the
+contents of a directory:
 
     perl -MIO::All -le 'print for io(".")->all'
 
 '>' and '<' move data between strings and files:
 
-    $content < io('file1');
-    $content > io('file2');
-    io('file2') > $content2;
-    io('file3') < $content2;
+    $content1 < io('file1');
+    $content1 > io('file2');
+    io('file2') > $content3;
+    io('file3') < $content3;
     io('file3') > io('file4');
     io('file5') < io('file4');
 
@@ -1111,7 +1213,7 @@ An IO::All file used as an array reference becomes tied using Tie::File:
     # Print last line of file
     print $file->[-1];
     # Insert new line in middle of file
-    $file->[$#{$file} / 2] = 'New line';
+    $file->[$#$file / 2] = 'New line';
 
 IO::All directories used as hashes have file names as keys, and IO::All
 objects as values:
@@ -1120,7 +1222,7 @@ objects as values:
 
 Files used as scalar references get slurped:
 
-        print ${io('dir')->{'foo.txt'}};
+    print ${io('dir')->{'foo.txt'}};
 
 =head2 File Locking
 
@@ -1313,11 +1415,13 @@ NOTE: The C<io> function takes all the same parameters as C<new>.
 
     new(file_descriptor,
         '-',
+        '=',
         '$',
         -file_name => $file_name,
         -file_handle => $file_handle,
         -dir_name => $directory_name,
         -dir_handle => $directory_handle,
+        '-tie',
        );
             
 File descriptor is a file/directory name or file/directory handle or
@@ -1662,6 +1766,19 @@ in error handling.
 
 Proxy for IO::Handle::truncate()
 
+=item * type()
+
+Returns a string indicated the type of io object. Possible values are:
+
+    file
+    dir
+    link
+    socket
+    string
+    pipe
+
+Returns undef if type is not determinable.
+
 =item * unlink
 
 Unlink (delete) the file represented by the IO::All object.
@@ -1690,9 +1807,9 @@ early stages of the project, I will not hesitate to break backwards
 compatibility with other versions of IO::All if I can find an easier
 and clearer way to do a particular thing.
 
-This is the first revision of this module. IO is tricky stuff. There is
-definitely more work to be done. On the other hand, this module relies
-heavily on very stable existing IO modules; so it may work fairly well.
+IO is tricky stuff. There is definitely more work to be done. On the
+other hand, this module relies heavily on very stable existing IO
+modules; so it may work fairly well.
 
 I am sure you will find many unexpected "features". Please send all
 problems, ideas and suggestions to INGY@cpan.org.
@@ -1711,7 +1828,8 @@ Support for format_write and other format stuff is not supported yet.
 
 =head1 SEE ALSO
 
-IO::Handle, IO::File, IO::Dir, IO::Socket, IO::String, IO::ReadBackwards
+IO::Handle, IO::File, IO::Dir, IO::Socket, IO::String, IO::ReadBackwards,
+Tie::File
 
 Also check out the Spiffy module if you are interested in extending this
 module.
