@@ -10,13 +10,13 @@ plan((eval {require Tie::File; 1})
     : (skip_all => "requires Tie::File")
 );
 
-io('t/output/tie_file1') < io('t/tie_file.t');
-my $file = io 't/output/tie_file1';
+(io('t/output/tie_file1') < io('t/tie_file.t'))->close;
+my $file = io('t/output/tie_file1')->rdonly;
 is($file->[-1], 'bar');
 is($file->[-2], 'foo');
 
-"foo\n" x 3 > io('t/output/tie_file1');
-io('t/output/tie_file1')->[1] = 'bar';
+"foo\n" x 3 > io('t/output/tie_file2');
+io('t/output/tie_file2')->[1] = 'bar';
 
 
 __END__

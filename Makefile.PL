@@ -10,6 +10,7 @@ requires(qw(
     perl 5.6.1
     Spiffy 0.16
     Filter::Util::Call 0
+    Tie::File 0.96
 ));
 clean_files('t/output/*');
 

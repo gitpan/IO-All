@@ -2,7 +2,7 @@ package IO::All;
 use strict;
 use warnings;
 use 5.006_001;
-our $VERSION = '0.21';
+our $VERSION = '0.22';
 use Spiffy 0.16 qw(-Base !field);
 use Fcntl qw(:DEFAULT :flock);
 use Symbol();
@@ -56,7 +56,7 @@ option 'fork';
 option 'lock';
 option 'rdonly';
 option 'rdwr';
-option 'sort';
+option 'sort' => 1;
 
 #===============================================================================
 # IO::Handle proxy methods
@@ -78,7 +78,7 @@ proxy_open print => '>';
 proxy_open printf => '>';
 proxy_open sysread => O_RDONLY;
 proxy_open syswrite => O_CREAT | O_WRONLY;
-proxy_open seek => '+<';
+proxy_open seek => $^O eq 'MSWin32' ? '<' : '+<';
 proxy_open 'getc';
 proxy_open 'recv';
 proxy_open 'send';
@@ -133,7 +133,7 @@ sub _copy_from {
     my $other = shift;
     for (keys(%{*$other})) {
         # XXX Need to audit exclusions here
-        next if /^(handle|io_handle)$/;
+        next if /^(_handle|io_handle)$/;
         *$self->{$_} = *$other->{$_};
     }
 }
@@ -415,16 +415,16 @@ sub All {
 
 sub all {
     my $depth = @_ ? shift(@_) : $self->_deep ? 0 : 1;
+    my $first = not @_;
     my @all;
-    my $last = 1;
     while (my $io = $self->next) {
         push @all, $io;
-        push(@all, $io->all($depth - 1)), $last = 0
+        push(@all, $io->all($depth - 1, 1))
           if $depth != 1 and $io->is_dir;
     }
     @all = grep {&{$self->filter}} @all
       if $self->filter;
-    return @all unless $last and $self->_sort;
+    return @all unless $first and $self->_sort;
     return sort {$a->name cmp $b->name} @all;
 }
 
@@ -884,6 +884,7 @@ sub assert_tied_file {
         my $array_ref = do { my @array; \@array };
         my $name = $self->name;
         my @options = $self->_rdonly ? (mode => O_RDONLY) : ();
+        push @options, (recsep => "\n");
         tie @$array_ref, 'Tie::File', $name, @options;
         $self->throw("Can't tie 'Tie::File' to '$name':\n$!")
           unless tied @$array_ref;

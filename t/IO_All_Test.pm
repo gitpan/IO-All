@@ -5,7 +5,7 @@ use File::Path;
     test_file_contents2 
     test_matching_files
     read_file_lines
-    flip_slash
+    flip_slash f
 );
 use strict;
 use base 'Exporter';
@@ -47,6 +47,10 @@ sub flip_slash {
         $string =~ s/\//\\/g;
     }
     return $string;
+}
+{
+    no warnings;
+    *f = \&flip_slash;
 }
 
 BEGIN {

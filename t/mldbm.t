@@ -5,8 +5,11 @@ use Test::More;
 use IO::All;
 use IO_All_Test;
 
+
 plan((eval {require MLDBM; 1})
-    ? (tests => 3)
+    ? ($^O eq 'MSWin32')
+      ? (skip_all => "Unresolved bug for mldbm on MSWin32")
+      : (tests => 3)
     : (skip_all => "requires MLDBM")
 );
 

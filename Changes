@@ -1,4 +1,9 @@
 ---
+version: 0.22
+date:    Tue Jun  1 11:20:17 PDT 2004
+changes:
+- Make tests pass on MSWin32 :P
+---
 version: 0.21
 date:    Sat May 29 12:45:00 PDT 2004
 changes:
