@@ -6,7 +6,7 @@ use Spiffy qw(-base !attribute);
 use Fcntl qw(:DEFAULT :flock);
 use Symbol;
 use File::Spec;
-our $VERSION = '0.14';
+our $VERSION = '0.15';
 our @EXPORT = qw(io);
 
 spiffy_constructor 'io';
@@ -877,7 +877,7 @@ sub overload_dir_all {
 sub overload_dir_hash {
     +{ 
         map {
-            (my $name = $_->name) =~ s/.*\///;
+            (my $name = $_->name) =~ s/.*[\/\\]//;
             ($name, $_);
         } $_[1]->all 
     };
@@ -946,7 +946,7 @@ or:
 
     # Print name and first line of all files in a directory
     my $dir = io('./mydir'); 
-    while (my $io = $dir->read) {
+    while (my $io = $dir->next) {
         print $io->name, ' - ', $io->getline
           if $io->is_file;
     }

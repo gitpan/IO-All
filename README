@@ -39,7 +39,7 @@ SYNOPSIS II
 
         # Print name and first line of all files in a directory
         my $dir = io('./mydir'); 
-        while (my $io = $dir->read) {
+        while (my $io = $dir->next) {
             print $io->name, ' - ', $io->getline
               if $io->is_file;
         }

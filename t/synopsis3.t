@@ -1,8 +1,14 @@
 use strict;
-use Test::More tests => 3;
+use warnings;
+use Test::More;
 use lib 't';
 use IO_All_Test;
 use Config;
+
+plan((eval {require IO::String; 1})
+    ? (tests => 3)
+    : (skip_all => "requires IO::String")
+);
 
 undef $/; 
 # # Copy STDIN to STDOUT

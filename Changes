@@ -1,4 +1,10 @@
 ---
+version: 0.15
+date:    Mon Mar 15 09:50:46 PST 2004
+changes:
+- Got things working on MSWin32
+- turned off lock.t on solaris and cygwin for now
+---
 version: 0.14
 date:    Mon Mar 15 00:19:21 PST 2004
 changes:

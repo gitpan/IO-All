@@ -53,7 +53,8 @@ test_file_contents($data2, 't/output/overload3');
 is(io('foo') . '', 'foo');
 
 is("@{io 't/mydir'}", 
-   't/mydir/dir1 t/mydir/dir2 t/mydir/file1 t/mydir/file2 t/mydir/file3',
+   flip_slash 
+     't/mydir/dir1 t/mydir/dir2 t/mydir/file1 t/mydir/file2 t/mydir/file3',
 );
 
 is(join(' ', sort keys %{io 't/mydir'}), 
@@ -61,7 +62,8 @@ is(join(' ', sort keys %{io 't/mydir'}),
 );
 
 is(join(' ', sort map {"$_"} values %{io 't/mydir'}), 
-   't/mydir/dir1 t/mydir/dir2 t/mydir/file1 t/mydir/file2 t/mydir/file3',
+   flip_slash
+     't/mydir/dir1 t/mydir/dir2 t/mydir/file1 t/mydir/file2 t/mydir/file3',
 );
 
 ${io('t/mystuff')} . ${io('t/mystuff')} > io('t/output/overload1');

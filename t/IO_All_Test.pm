@@ -5,6 +5,7 @@ use File::Path;
     test_file_contents2 
     test_matching_files
     read_file_lines
+    flip_slash
 );
 use strict;
 use base 'Exporter';
@@ -38,6 +39,14 @@ sub read_file_lines {
     local(*FILE);
     open FILE, $file or die $!;
     (<FILE>);
+}
+
+sub flip_slash {
+    my $string = shift;
+    if ($^O =~ /^mswin32$/i) {
+        $string =~ s/\//\\/g;
+    }
+    return $string;
 }
 
 BEGIN {

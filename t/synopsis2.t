@@ -1,4 +1,5 @@
 use strict;
+use warnings;
 use Test::More tests => 9;
 use IO::All;
 use lib 't';
@@ -10,12 +11,12 @@ ok($dir->is_dir);
 while (my $io = $dir->next) {
     if ($io->is_file) {
         my $line = $io->name . ' - ' . $io->getline;
-        is($line, <DATA>);
+        is($line, flip_slash scalar <DATA>);
     }
 }
 
 # Print name of all files recursively
-is("$_\n", <DATA>)
+is("$_\n", flip_slash scalar <DATA>)
   for io('t/mydir')->all_files('-r');
 
 __END__

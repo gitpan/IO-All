@@ -1,13 +1,12 @@
 name: IO-All
-version: 0.14
+version: 0.15
 abstract: IO::All of it to Graham and Damian
 author: Brian Ingerson <ingy@cpan.org>
 license: perl
 distribution_type: module
 requires:
   perl: 5.6.1
-  Spiffy: 0.12
-  IO::String: 1.04
+  Spiffy: 0.13
 no_index:
   directory:
     - inc
