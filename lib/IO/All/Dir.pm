@@ -10,6 +10,7 @@ const type => 'dir';
 option 'sort' => 1;
 chain filter => undef;
 option 'deep';
+field 'chdir_from';
 
 #===============================================================================
 sub dir {
@@ -32,18 +33,18 @@ sub assert_open {
 
 sub open {
     $self->is_open(1);
-    $self->assert_dirpath($self->name)
-      if $self->name and $self->_assert;
+    $self->assert_dirpath($self->pathname)
+      if $self->pathname and $self->_assert;
     my $handle = IO::Dir->new;
     $self->io_handle($handle);
-    $handle->open($self->name)
+    $handle->open($self->pathname)
       or $self->throw($self->open_msg);
     return $self;
 }
 
 sub open_msg {
-    my $name = defined $self->name
-      ? " '" . $self->name . "'"
+    my $name = defined $self->pathname
+      ? " '" . $self->pathname . "'"
       : '';
     return qq{Can't open directory$name:\n$!};
 }
@@ -65,7 +66,7 @@ sub all {
     @all = grep {&{$self->filter}} @all
       if $self->filter;
     return @all unless $first and $self->_sort;
-    return sort {$a->name cmp $b->name} @all;
+    return sort {$a->pathname cmp $b->pathname} @all;
 }
 
 sub All_Dirs {
@@ -92,13 +93,53 @@ sub all_links {
     grep {$_->is_link} $self->all(@_);
 }
 
+sub chdir {
+    require Cwd;
+    $self->chdir_from(Cwd::cwd());
+    CORE::chdir($self->pathname);
+    return $self;
+}
+
 sub empty {
-    my @all = $self->all;
-    not @all;
+    my $dh;
+    opendir($dh, $self->pathname) or die;
+    while (my $dir = readdir($dh)) {
+       return 0 unless $dir =~ /^\.{1,2}$/;
+    } 
+    return 1;
+}
+
+sub mkdir {
+    defined($self->perms)
+    ? CORE::mkdir($self->pathname, $self->perms)
+    : CORE::mkdir($self->pathname);
+    return $self;
+}
+
+sub mkpath {
+    require File::Path;
+    File::Path::mkpath($self->pathname, @_);
+    return $self;
 }
 
 sub next {
     $self->assert_open;
+    my $name = $self->readdir;
+    return unless defined $name;
+    my $io = IO::All->new(File::Spec->catfile($self->pathname, $name));
+    $io->absolute if $self->is_absolute;
+    return $io;
+}
+
+sub readdir {
+    $self->assert_open;
+    if (wantarray) {
+        my @return = grep { 
+            not /^\.{1,2}$/ 
+        } $self->io_handle->read;
+        $self->close;
+        return @return;
+    }
     my $name = '.'; 
     while ($name =~ /^\.{1,2}$/) {
         $name = $self->io_handle->read;
@@ -107,29 +148,22 @@ sub next {
             return;
         }
     }
-    return IO::All->new(File::Spec->catfile($self->name, $name));
-}
-
-sub mkdir {
-    defined($self->perms)
-    ? CORE::mkdir($self->name, $self->perms)
-    : CORE::mkdir($self->name);
-    return $self;
-}
-
-sub mkpath {
-    require File::Path;
-    File::Path::mkpath($self->name, @_);
-    return $self;
+    return $name;
 }
 
 sub rmdir {
-    rmdir $self->name;
+    rmdir $self->pathname;
 }
 
 sub rmtree {
     require File::Path;
-    File::Path::rmtree($self->name, @_);
+    File::Path::rmtree($self->pathname, @_);
+}
+
+sub DESTROY {
+    CORE::chdir($self->chdir_from)
+      if $self->chdir_from;
+    super;
 }
 
 #===============================================================================
@@ -147,7 +181,7 @@ sub overload_as_array() {
 sub overload_as_hash() {
     +{ 
         map {
-            (my $name = $_->name) =~ s/.*[\/\\]//;
+            (my $name = $_->pathname) =~ s/.*[\/\\]//;
             ($name, $_);
         } $_[1]->all 
     };

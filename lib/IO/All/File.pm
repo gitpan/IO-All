@@ -24,17 +24,17 @@ sub file_handle {
 
 #===============================================================================
 sub assert_filepath {
-    my $name = $self->name
+    my $name = $self->pathname
       or return;
     my $directory;
-    (undef, $directory) = File::Spec->splitpath($self->name);
+    (undef, $directory) = File::Spec->splitpath($self->pathname);
     $self->assert_dirpath($directory);
 }
 
 sub assert_open_backwards {
     return if $self->is_open;
     require File::ReadBackwards;
-    my $file_name = $self->name;
+    my $file_name = $self->pathname;
     my $io_handle = File::ReadBackwards->new($file_name)
       or $self->throw("Can't open $file_name for backwards:\n$!");
     $self->io_handle($io_handle);
@@ -53,7 +53,7 @@ sub assert_tied_file {
         $self->throw("Tie::File required for file array operations:\n$@") 
           if $@;
         my $array_ref = do { my @array; \@array };
-        my $name = $self->name;
+        my $name = $self->pathname;
         my @options = $self->_rdonly ? (mode => O_RDONLY) : ();
         push @options, (recsep => "\n");
         tie @$array_ref, 'Tie::File', $name, @options;
@@ -72,9 +72,9 @@ sub open {
     $self->perms($perms) if defined $perms;
     my @args = ($self->mode);
     push @args, $self->perms if defined $self->perms;
-    if (defined $self->name) {
+    if (defined $self->pathname) {
         $self->io_handle(IO::File->new);
-        $self->io_handle->open($self->name, @args) 
+        $self->io_handle->open($self->pathname, @args) 
           or $self->throw($self->open_msg);
     }
     elsif (defined $self->_handle and
@@ -93,8 +93,8 @@ my %mode_msg = (
     '>>' => 'append',
 );
 sub open_msg {
-    my $name = defined $self->name
-      ? " '" . $self->name . "'"
+    my $name = defined $self->pathname
+      ? " '" . $self->pathname . "'"
       : '';
     my $direction = defined $mode_msg{$self->mode}
       ? ' for ' . $mode_msg{$self->mode}
@@ -120,12 +120,13 @@ sub close {
         $self->tied_file(undef);
         return 1;
     }
-    $io_handle->close(@_);
+    $io_handle->close(@_)
+      if defined $io_handle;
     return $self;
 }
 
 sub empty {
-    -z $self->name;
+    -z $self->pathname;
 }
 
 sub filepath {
@@ -147,7 +148,7 @@ sub getlines_backwards {
 }
 
 sub touch {
-    return super if -e $self->name;
+    return super if -e $self->pathname;
     return $self if $self->is_open;
     my $mode = $self->mode;
     $self->mode('>>')->open->close;
@@ -156,7 +157,7 @@ sub touch {
 }
 
 sub unlink {
-    unlink $self->name;
+    unlink $self->pathname;
 }
 
 #===============================================================================
@@ -173,13 +174,13 @@ sub overload_table {
 
 sub overload_file_to_file() {
     require File::Copy;
-    File::Copy::copy($_[1]->name, $_[2]->name);
+    File::Copy::copy($_[1]->pathname, $_[2]->pathname);
     $_[2];
 }
 
 sub overload_file_from_file() {
     require File::Copy;
-    File::Copy::copy($_[2]->name, $_[1]->name);
+    File::Copy::copy($_[2]->pathname, $_[1]->pathname);
     $_[1];
 }
 

@@ -1,4 +1,17 @@
 ---
+version: 0.31
+date:    Sun Aug  8 22:49:46 PDT 2004
+changes:
+- added readdir
+- let exists work on non-existant filename
+---
+version: 0.31
+date:    Sat Jul 24 20:19:10 PDT 2004
+changes:
+- absolute, relative, pathname
+- chdir
+- stat on unopened file/dir
+---
 version: 0.30
 date:    Mon Jul 19 11:23:15 PDT 2004
 changes:

@@ -29,7 +29,8 @@ sub open {
       (qw(DB_File GDBM_File NDBM_File ODBM_File SDBM_File));
     my $dbm_class;
     for my $module (@dbm_list) {
-        if (defined $INC{"$module.pm"} || eval "eval 'use $module; 1'") {
+        (my $file = "$module.pm") =~ s{::}{/}g;
+        if (defined $INC{$file} || eval "eval 'use $module; 1'") {
             $self->_dbm_class($module);
             last;
         }
@@ -38,7 +39,8 @@ sub open {
       unless defined $self->_dbm_class;
     my $mode = $self->_rdonly ? O_RDONLY : O_RDWR;
     if ($self->_dbm_class eq 'DB_File::Lock') {
-        my $type = eval '$DB_HASH' or die; die $@ if $@;
+        $self->_dbm_class->import;
+        my $type = eval '$DB_HASH'; die $@ if $@;
         my $flag = $self->_rdwr ? 'write' : 'read';
         $mode = $self->_rdwr ? O_RDWR : O_RDONLY;
         $self->_dbm_extra([$type, $flag]);
@@ -52,11 +54,22 @@ sub open {
 sub tie_dbm {
     my $hash;
     my $filename = $self->name;
-    tie %$hash, $self->_dbm_class, $filename, $self->mode, $self->perms, 
+    my $db = tie %$hash, $self->_dbm_class, $filename, $self->mode, $self->perms, 
         @{$self->_dbm_extra}
       or $self->throw("Can't open '$filename' as DBM file:\n$!");
+    $self->add_utf8_dbm_filter($db)
+      if $self->_utf8;
     $self->tied_file($hash);
 }
+
+sub add_utf8_dbm_filter {
+    my $db = shift;
+    $db->filter_store_key(sub { utf8::encode($_) });
+    $db->filter_store_value(sub { utf8::encode($_) });
+    $db->filter_fetch_key(sub { utf8::decode($_) });
+    $db->filter_fetch_value(sub { utf8::decode($_) });
+}
+
 
 1;
 

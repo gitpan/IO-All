@@ -2,13 +2,14 @@ package IO::All;
 use strict;
 use warnings;
 use 5.006_001;
-our $VERSION = '0.30';
+our $VERSION = '0.31';
 use Spiffy 0.19 qw(-Base !field spiffy_constructor);
 use File::Spec();
 use Symbol();
 use Fcntl;
 our @EXPORT = qw(io);
-our @EXPORT_BASE = qw(field chain option proxy proxy_open);
+our @EXPORT_OK = qw(field chain option proxy proxy_open);
+our @EXPORT_BASE = @EXPORT_OK;
 
 spiffy_constructor 'io';
 
@@ -35,6 +36,7 @@ chain name => undef;
 chain perms => undef;
 chain separator => $/;
 field type => '';
+sub pathname { $self->name(@_) }
 
 #===============================================================================
 # Chainable option methods (write only)
@@ -97,9 +99,13 @@ my $autoload = {
         socket_handle socket
         accept socket
         shutdown socket
+
+        readlink link
+        symlink link
     )
 };
 
+sub link { require IO::All::Link; IO::All::Link::link($self, @_) }
 sub dbm { require IO::All::DBM; IO::All::DBM::dbm($self, @_) }
 sub mldbm { require IO::All::MLDBM; IO::All::MLDBM::mldbm($self, @_) }
 
@@ -233,24 +239,24 @@ sub BINMODE {
 #===============================================================================
 # Stat Methods
 #===============================================================================
-sub device    { my $x = (stat($self->io_handle || $self->name))[0] }
-sub inode     { my $x = (stat($self->io_handle || $self->name))[1] }
-sub modes     { my $x = (stat($self->io_handle || $self->name))[2] }
-sub nlink     { my $x = (stat($self->io_handle || $self->name))[3] }
-sub uid       { my $x = (stat($self->io_handle || $self->name))[4] }
-sub gid       { my $x = (stat($self->io_handle || $self->name))[5] }
-sub device_id { my $x = (stat($self->io_handle || $self->name))[6] }
-sub size      { my $x = (stat($self->io_handle || $self->name))[7] }
-sub atime     { my $x = (stat($self->io_handle || $self->name))[8] }
-sub mtime     { my $x = (stat($self->io_handle || $self->name))[9] }
-sub ctime     { my $x = (stat($self->io_handle || $self->name))[10] }
-sub blksize   { my $x = (stat($self->io_handle || $self->name))[11] }
-sub blocks    { my $x = (stat($self->io_handle || $self->name))[12] }
+sub device    { my $x = (stat($self->io_handle || $self->pathname))[0] }
+sub inode     { my $x = (stat($self->io_handle || $self->pathname))[1] }
+sub modes     { my $x = (stat($self->io_handle || $self->pathname))[2] }
+sub nlink     { my $x = (stat($self->io_handle || $self->pathname))[3] }
+sub uid       { my $x = (stat($self->io_handle || $self->pathname))[4] }
+sub gid       { my $x = (stat($self->io_handle || $self->pathname))[5] }
+sub device_id { my $x = (stat($self->io_handle || $self->pathname))[6] }
+sub size      { my $x = (stat($self->io_handle || $self->pathname))[7] }
+sub atime     { my $x = (stat($self->io_handle || $self->pathname))[8] }
+sub mtime     { my $x = (stat($self->io_handle || $self->pathname))[9] }
+sub ctime     { my $x = (stat($self->io_handle || $self->pathname))[10] }
+sub blksize   { my $x = (stat($self->io_handle || $self->pathname))[11] }
+sub blocks    { my $x = (stat($self->io_handle || $self->pathname))[12] }
 
 #===============================================================================
 # File::Spec Interface
 #===============================================================================
-sub canonpath { File::Spec->canonpath($self->name) } 
+sub canonpath { File::Spec->canonpath($self->pathname) } 
 sub catdir { $self->new->dir(File::Spec->catdir(@_)) } 
 sub catfile { $self->new->file(File::Spec->catfile(@_)) } 
 sub join { $self->catfile(@_) } 
@@ -260,13 +266,13 @@ sub rootdir { $self->new->dir(File::Spec->rootdir) }
 sub tmpdir { $self->new->dir(File::Spec->tmpdir) } 
 sub updir { $self->new->dir(File::Spec->updir) } 
 sub case_tolerant { File::Spec->case_tolerant } 
-sub is_absolute { File::Spec->file_name_is_absolute($self->name) }
+sub is_absolute { File::Spec->file_name_is_absolute($self->pathname) }
 sub path { map { $self->new->dir($_) } File::Spec->path } 
-sub splitpath { File::Spec->splitpath($self->name) } 
-sub splitdir { File::Spec->splitdir($self->name) } 
+sub splitpath { File::Spec->splitpath($self->pathname) } 
+sub splitdir { File::Spec->splitdir($self->pathname) } 
 sub catpath { $self->new(File::Spec->catpath(@_)) } 
-sub abs2rel { File::Spec->abs2rel($self->name, @_) } 
-sub rel2abs { File::Spec->rel2abs($self->name, @_) }
+sub abs2rel { File::Spec->abs2rel($self->pathname, @_) } 
+sub rel2abs { File::Spec->rel2abs($self->pathname, @_) }
 
 #===============================================================================
 # Public IO Action Methods
@@ -343,6 +349,8 @@ sub empty {
     $self->throw($message);
 }
 
+sub exists { -e $self->pathname }
+
 sub getline {
     return $self->getline_backwards
       if $self->_backwards;
@@ -404,7 +412,7 @@ sub open {
         push @args, $self->mode;
         push @args, $self->perms if defined $self->perms;
     }
-    if (defined $self->name and not $self->type) {
+    if (defined $self->pathname and not $self->type) {
         $self->file;
         return $self->open(@args);
     }
@@ -493,7 +501,7 @@ sub throw {
 sub assert_dirpath {
     my $dir_name = shift;
     return $dir_name if -d $dir_name or
-      CORE::mkdir($self->name, $self->perms || 0755) or
+      CORE::mkdir($self->pathname, $self->perms || 0755) or
       do {
           require File::Path;
           File::Path::mkpath($dir_name);
@@ -721,12 +729,12 @@ sub get_argument_type {
     return 'hash' if $ref eq 'HASH';
     return 'ref' unless $argument->isa('IO::All');
     $argument->file
-      if defined $argument->name and not $argument->type;
+      if defined $argument->pathname and not $argument->type;
     return $argument->type || 'unknown';
 }
 
 sub overload_stringify {
-    my $name = $self->name;
+    my $name = $self->pathname;
     return defined($name) ? $name : overload::StrVal($self);
 }
 

@@ -1,7 +1,7 @@
 package IO::All::Link;
 use strict;
 use warnings;
-use IO::All '-Base';
+use IO::All::File '-Base';
 
 const type => 'link';
 
@@ -12,7 +12,13 @@ sub link {
 }
 
 sub readlink {
-    $self->new(readlink($self->name));
+    $self->new(CORE::readlink($self->name));
+}
+
+sub symlink {
+    my $target = shift;
+    $self->assert_filepath if $self->_assert;
+    CORE::symlink($target, $self->pathname);
 }
 
 1;

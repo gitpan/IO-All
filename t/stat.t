@@ -1,7 +1,7 @@
 use lib 't', 'lib';
 use strict;
 use warnings;
-use Test::More tests => 13;
+use Test::More tests => 14;
 use IO::All;
 use IO_All_Test;
 
@@ -22,3 +22,6 @@ is($io->mtime, $mtime);
 is($io->ctime, $ctime);
 is($io->blksize, $blksize);
 is($io->blocks, $blocks);
+
+my @stat = $io->stat; 
+ok(defined $stat[0]);

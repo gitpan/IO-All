@@ -1,8 +1,15 @@
 package IO::All::Filesys;
 use warnings;
 use strict;
-use Spiffy '-selfless';
+use Spiffy qw(-selfless);  # XXX (super); needs fixing in Spiffy
 use Fcntl qw(:flock);
+
+sub absolute {
+    $self->pathname(File::Spec->rel2abs($self->pathname))
+      unless $self->is_absolute;
+    $self->is_absolute(1);
+    return $self;
+}
 
 sub exists { -e $self->name }
 
@@ -12,9 +19,29 @@ sub filename {
     return $filename;
 }
 
+sub is_absolute {
+    return *$self->{is_absolute} = shift if @_;
+    return *$self->{is_absolute} 
+      if defined *$self->{is_absolute};
+    *$self->{is_absolute} = IO::All::is_absolute($self) ? 1 : 0;
+}
+
 sub is_executable { -x $self->name }
 sub is_readable { -r $self->name }
 sub is_writable { -w $self->name }
+
+sub pathname {
+    return *$self->{pathname} = shift if @_;
+    return *$self->{pathname} if defined *$self->{pathname};
+    return $self->name;
+}
+
+sub relative {
+    $self->pathname(File::Spec->abs2rel($self->pathname))
+      if $self->is_absolute;
+    $self->is_absolute(0);
+    return $self;
+}
 
 sub rename {
     my $new = shift;
@@ -32,6 +59,12 @@ sub set_lock {
     ? LOCK_EX
     : LOCK_SH;
     flock $io_handle, $flag;
+}
+
+sub stat {
+    return IO::All::stat($self, @_)  # XXX super not working :\
+      if $self->is_open;
+      CORE::stat($self->pathname);
 }
 
 sub touch {
