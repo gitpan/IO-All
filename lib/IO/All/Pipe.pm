@@ -1,7 +1,5 @@
 package IO::All::Pipe;
-use strict;
-use warnings;
-use IO::All '-Base';
+use IO::All -Base;
 use IO::File;
 
 const type => 'pipe';
@@ -48,8 +46,6 @@ sub open_msg {
       : '';
     return qq{Can't open pipe$name$direction:\n$!};
 }
-
-1;
 
 __DATA__
 

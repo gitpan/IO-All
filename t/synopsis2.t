@@ -17,7 +17,7 @@ while (my $io = $dir->next) {
 
 # Print name of all files recursively
 is("$_\n", flip_slash scalar <DATA>)
-  for io('t/mydir')->all_files(0);
+  for grep {! /CVS|\.svn/} io('t/mydir')->all_files(0);
 
 __END__
 t/mydir/file1 - file1 is fun

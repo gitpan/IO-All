@@ -1,7 +1,5 @@
 package IO::All::Socket;
-use strict;
-use warnings;
-use IO::All '-Base';
+use IO::All -Base;
 use IO::Socket;
 
 const type => 'socket';
@@ -127,8 +125,6 @@ sub overload_any_to_any {
     super;
     $self->close;
 }
-
-1;
 
 __DATA__
 

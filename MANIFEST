@@ -45,6 +45,8 @@ t/inline_subclass.t
 t/input.t
 t/IO_All_Test.pm
 t/IO_Dumper.pm
+t/link.t
+t/link2.t
 t/lock.t
 t/mldbm.t
 t/morestuff

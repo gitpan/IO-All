@@ -1,7 +1,5 @@
 package IO::All::Temp;
-use strict;
-use warnings;
-use IO::All::File '-Base';
+use IO::All::File -Base;
 
 sub temp {
     bless $self, __PACKAGE__;
@@ -13,8 +11,6 @@ sub temp {
     $self->is_open(1);
     return $self;
 }
-
-1;
 
 __DATA__
 

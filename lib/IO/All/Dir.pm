@@ -1,7 +1,5 @@
 package IO::All::Dir;
-use strict;
-use warnings;
-use IO::All '-Base';
+use IO::All -Base;
 use mixin 'IO::All::Filesys';
 use IO::Dir;
 
@@ -186,8 +184,6 @@ sub overload_as_hash() {
         } $_[1]->all 
     };
 }
-
-1;
 
 __DATA__
 

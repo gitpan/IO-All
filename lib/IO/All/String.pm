@@ -1,7 +1,5 @@
 package IO::All::String;
-use strict;
-use warnings;
-use IO::All '-Base';
+use IO::All -Base;
 use IO::String;
 
 const type => 'string';
@@ -16,8 +14,6 @@ sub open {
     $self->io_handle(IO::String->new);
     $self->set_binmode;
 }
-
-1;
 
 __DATA__
 

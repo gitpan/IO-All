@@ -1,7 +1,5 @@
 package IO::All::DBM;
-use strict;
-use warnings;
-use IO::All::File '-Base';
+use IO::All::File -Base;
 use Fcntl;
 
 field _dbm_list => [];
@@ -18,6 +16,16 @@ sub assert_open {
     return $self->tied_file 
       if $self->tied_file;
     $self->open;
+}
+
+sub assert_filepath {
+    super;
+    if ($self->_rdonly and not -e $self->pathname) {
+        my $rdwr = $self->_rdwr;
+        $self->assert(0)->rdwr(1)->rdonly(0)->open;
+        $self->close;
+        $self->assert(1)->rdwr($rdwr)->rdonly(1);
+    }
 }
 
 sub open {
@@ -41,6 +49,9 @@ sub open {
     if ($self->_dbm_class eq 'DB_File::Lock') {
         $self->_dbm_class->import;
         my $type = eval '$DB_HASH'; die $@ if $@;
+        # XXX Not sure about this warning
+        warn "Using DB_File::Lock in IO::All without the rdonly or rdwr method\n" 
+          if not ($self->_rdwr or $self->_rdonly);
         my $flag = $self->_rdwr ? 'write' : 'read';
         $mode = $self->_rdwr ? O_RDWR : O_RDONLY;
         $self->_dbm_extra([$type, $flag]);
@@ -69,9 +80,6 @@ sub add_utf8_dbm_filter {
     $db->filter_fetch_key(sub { utf8::decode($_) });
     $db->filter_fetch_value(sub { utf8::decode($_) });
 }
-
-
-1;
 
 __DATA__
 

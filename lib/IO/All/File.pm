@@ -1,7 +1,5 @@
 package IO::All::File;
-use strict;
-use warnings;
-use IO::All '-Base';
+use IO::All -Base;
 use mixin 'IO::All::Filesys';
 use IO::File;
 
@@ -131,7 +129,7 @@ sub empty {
 
 sub filepath {
     my ($volume, $path) = $self->splitpath;
-    return File::Spec->catpath($volume, $path);
+    return File::Spec->catpath($volume, $path, '');
 }
 
 sub getline_backwards {
@@ -145,6 +143,28 @@ sub getlines_backwards {
         push @lines, $line;
     }
     return @lines;
+}
+
+sub head {
+    my $lines = shift || 10;
+    my @return;
+    $self->close;
+    while ($lines--) {
+        push @return, ($self->getline or last);
+    }
+    $self->close;
+    return wantarray ? @return : join '', @return;
+}
+
+sub tail {
+    my $lines = shift || 10;
+    my @return;
+    $self->close;
+    while ($lines--) {
+        unshift @return, ($self->getline_backwards or last);
+    }
+    $self->close;
+    return wantarray ? @return : join '', @return;
 }
 
 sub touch {
@@ -198,8 +218,6 @@ sub overload_file_as_scalar() {
     my $scalar = $_[1]->scalar;
     return \$scalar;
 }
-
-1;
 
 __DATA__
 

@@ -1,7 +1,5 @@
 package IO::All::MLDBM;
-use strict;
-use warnings;
-use IO::All::DBM '-Base';
+use IO::All::DBM -Base;
 
 field _serializer => 'Data::Dumper';
 
@@ -21,13 +19,13 @@ sub tie_dbm {
     eval "use MLDBM qw($dbm_class $serializer)";
     $self->throw("Can't open '$filename' as MLDBM:\n$@") if $@;
     my $hash;
-    tie %$hash, 'MLDBM', $filename, $self->mode, $self->perms, 
+    my $db = tie %$hash, 'MLDBM', $filename, $self->mode, $self->perms, 
         @{$self->_dbm_extra}
       or $self->throw("Can't open '$filename' as MLDBM file:\n$!");
+    $self->add_utf8_dbm_filter($db)
+      if $self->_utf8;
     $self->tied_file($hash);
 }
-
-1;
 
 __DATA__
 

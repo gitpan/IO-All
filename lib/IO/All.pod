@@ -168,7 +168,7 @@ C<close>, C<confess>, C<content>, C<ctime>, C<curdir>, C<dbm>, C<deep>,
 C<device>, C<device_id>, C<devnull>, C<dir>, C<domain>, C<empty>,
 C<eof>, C<errors>, C<file>, C<filename>, C<fileno>, C<filepath>,
 C<filter>, C<fork>, C<from>, C<ftp>, C<get>, C<getc>, C<getline>,
-C<getlines>, C<gid>, C<handle>, C<http>, C<https>, C<inode>,
+C<getlines>, C<gid>, C<handle>, C<head>, C<http>, C<https>, C<inode>,
 C<io_handle>, C<is_absolute>, C<is_dir>, C<is_dbm>, C<is_executable>,
 C<is_file>, C<is_link>, C<is_mldbm>, C<is_open>, C<is_pipe>,
 C<is_readable>, C<is_socket>, C<is_stdio>, C<is_string>, C<is_temp>,
@@ -182,9 +182,9 @@ C<response>, C<rmdir>, C<rmtree>, C<rootdir>, C<scalar>, C<seek>,
 C<send>, C<separator>, C<shutdown>, C<size>, C<slurp>, C<socket>,
 C<sort>, C<splitdir>, C<splitpath>, C<stat>, C<stdio>, C<stderr>,
 C<stdin>, C<stdout>, C<string>, C<string_ref>, C<subject>, C<sysread>,
-C<syswrite>, C<tell>, C<temp>, C<tie>, C<tmpdir>, C<to>, C<touch>,
-C<truncate>, C<type>, C<user>, C<uid>, C<unlink>, C<unlock>, C<updir>,
-C<uri>, C<utf8>, C<utime> and C<write>.
+C<syswrite>, C<tail>, C<tell>, C<temp>, C<tie>, C<tmpdir>, C<to>,
+C<touch>, C<truncate>, C<type>, C<user>, C<uid>, C<unlink>, C<unlock>,
+C<updir>, C<uri>, C<utf8>, C<utime> and C<write>.
 
 Each method is documented further below.
 
@@ -405,7 +405,7 @@ IO::All as the base class. Since IO::All is a Spiffy module, you do it
 like this:
 
     package NewModule;
-    use IO::All '-base';
+    use IO::All -base;
 
 You need to do it this way so that IO::All will export the C<io> function.
 Here is a simple recipe for subclassing:
@@ -425,7 +425,7 @@ First the code using the module:
 And next the IO::Dumper module itself:
 
     package IO::Dumper;
-    use IO::All '-base';
+    use IO::All -base;
     use Data::Dumper;
     
     sub dump {
@@ -446,7 +446,7 @@ method manually.
     io('./mydump')->dump($hash);
     
     package IO::Dumper;
-    use IO::All '-base';
+    use IO::All -base;
     use Data::Dumper;
     
     sub dump {
@@ -492,6 +492,10 @@ descriptor can be any of the following:
     - '$' means an IO::String object
     - '?' means a temporary file
     - A URI including: http, https, ftp and mailto
+    - An IO::All object
+
+If you provide an IO::All object, you will simply get that I<same
+object> returned from the constructor.
 
 If no file descriptor is provided, an object will still be created, but
 it must be defined by one of the following methods before it can be used
@@ -1032,6 +1036,12 @@ Calls IO::File::getline. You can pass in an optional record separator.
 
 Calls IO::File::getlines. You can pass in an optional record separator.
 
+=item * head
+
+Return the first 10 lines of a file. Takes an optional argument which is the
+number of lines to return. Works as expected in list and scalar context. Is
+subject to the current line separator.
+
 =item * io_handle
 
 Direct access to the actual IO::Handle object being used on an opened
@@ -1246,6 +1256,12 @@ Proxy for IO::Handle::sysread
 =item * syswrite
 
 Proxy for IO::Handle::syswrite
+
+=item * tail
+
+Return the last 10 lines of a file. Takes an optional argument which is the
+number of lines to return. Works as expected in list and scalar context. Is
+subject to the current line separator.
 
 =item * tell
 

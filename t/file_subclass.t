@@ -11,7 +11,7 @@ my $hash = {
     pink => 'triangle',
 };
 
-my $io = io('t/output/dump2')->dump($hash);
+my $io = io->file('t/output/dump2')->dump($hash);
 ok(-f 't/output/dump2');
 ok($io->close);
 ok(-s 't/output/dump2');

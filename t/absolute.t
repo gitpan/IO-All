@@ -4,6 +4,7 @@ use warnings;
 use Test::More tests => 3;
 use IO::All;
 use IO_All_Test;
+use diagnostics;
 
 my $io = io($0);
 

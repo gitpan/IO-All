@@ -1,6 +1,16 @@
 use lib 't', 'lib';
-use strict;
-use warnings;
+
+package IO::Dumper;
+use IO::All '-Base';
+use Data::Dumper;
+
+package IO::All::Filesys;
+sub dump {
+    $self->print(Data::Dumper::Dumper(@_));
+    return $self;
+} 
+
+package main;
 use Test::More tests => 5;
 use IO_All_Test;
 
@@ -13,7 +23,7 @@ my $hash = {
 };
 
 die if -f 't/output/dump1';
-my $io = io('t/output/dump1')->dump($hash);
+my $io = io('t/output/dump1')->file->dump($hash);
 ok(-f 't/output/dump1');
 ok($io->close);
 ok(-s 't/output/dump1');
@@ -25,17 +35,6 @@ is_deeply($a,$b);
 
 ok($io->unlink);
 
-package IO::Dumper;
-use IO::All '-base';
-use Data::Dumper;
-
-sub dump {
-    my $self = shift;
-    $self->print(Data::Dumper::Dumper(@_));
-    return $self;
-} 
-
-package main;
 __END__
 $VAR1 = {
   'pink' => 'triangle',

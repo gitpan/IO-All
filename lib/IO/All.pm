@@ -1,9 +1,8 @@
 package IO::All;
-use strict;
-use warnings;
+use Spiffy -XXX;
+use Spiffy 0.21 qw(-Base !field);
 use 5.006_001;
-our $VERSION = '0.31';
-use Spiffy 0.19 qw(-Base !field spiffy_constructor);
+our $VERSION = '0.32';
 use File::Spec();
 use Symbol();
 use Fcntl;
@@ -11,7 +10,7 @@ our @EXPORT = qw(io);
 our @EXPORT_OK = qw(field chain option proxy proxy_open);
 our @EXPORT_BASE = @EXPORT_OK;
 
-spiffy_constructor 'io';
+sub io() { IO::All->new(@_) }
 
 #===============================================================================
 # Private Accessors
@@ -105,6 +104,8 @@ my $autoload = {
     )
 };
 
+# XXX - These should die if the given argument exists but is not a
+# link, dbm, etc.
 sub link { require IO::All::Link; IO::All::Link::link($self, @_) }
 sub dbm { require IO::All::DBM; IO::All::DBM::dbm($self, @_) }
 sub mldbm { require IO::All::MLDBM; IO::All::MLDBM::mldbm($self, @_) }
@@ -152,13 +153,16 @@ sub new {
     $new->package($package);
     $new->_copy_from($self) if ref($self);
     my $name = shift;
+    return $name if UNIVERSAL::isa($name, 'IO::All');
     return $new->_init unless defined $name;
     return $new->handle($name)
       if UNIVERSAL::isa($name, 'GLOB') or ref(\ $name) eq 'GLOB';
+    # WWW - link is first because a link to a dir returns true for
+    # both -l and -d.
+    return $new->link($name) if -l $name;
     return $new->file($name) if -f $name;
     return $new->dir($name) if -d $name;
     return $new->$1($name) if $name =~ /^([a-z]{3,8}):/;
-    return $new->link($name) if -l $name ;
     return $new->socket($name) if $name =~ /^[\w\-\.]*:\d{1,5}$/;
     return $new->pipe($name) 
       if $name =~ s/^\s*\|\s*// or $name =~ s/\s*\|\s*$//;
@@ -792,5 +796,3 @@ sub overload_scalar_to_any() {
     $_[1]->print($_[2]);
     $_[1];
 }
-
-1;

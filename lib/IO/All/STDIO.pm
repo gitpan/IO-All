@@ -1,7 +1,5 @@
 package IO::All::STDIO;
-use strict;
-use warnings;
-use IO::All '-Base';
+use IO::All -Base;
 use IO::File;
 
 const type => 'stdio';
@@ -44,8 +42,6 @@ sub open_stderr {
 }
 
 # XXX Add overload support
-
-1;
 
 __DATA__
 

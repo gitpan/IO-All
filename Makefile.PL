@@ -8,7 +8,7 @@ version_from('lib/IO/All.pm');
 
 requires(qw(
     perl 5.6.1
-    Spiffy 0.19
+    Spiffy 0.21
     Filter::Util::Call 0
 ));
 clean_files('t/output/*');

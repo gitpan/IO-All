@@ -1,18 +1,16 @@
 package IO::All::Link;
-use strict;
-use warnings;
-use IO::All::File '-Base';
+use IO::All::File -Base;
 
 const type => 'link';
 
 sub link {
     bless $self, __PACKAGE__;
-    $self->name(shift);
+    $self->name(shift) if @_;
     $self->_init;
 }
 
 sub readlink {
-    $self->new(CORE::readlink($self->name));
+    IO::All->new(CORE::readlink($self->name));
 }
 
 sub symlink {
@@ -21,7 +19,32 @@ sub symlink {
     CORE::symlink($target, $self->pathname);
 }
 
-1;
+sub AUTOLOAD {
+    our $AUTOLOAD;
+    (my $method = $AUTOLOAD) =~ s/.*:://;
+    my $target = $self->target;
+    unless ($target) {
+        $self->throw("Can't call $method on symlink");
+        return;
+    }
+    $target->$method(@_);
+}
+
+sub target {
+    return *$self->{target} if *$self->{target};
+    my %seen;
+    my $link = $self;
+    my $new;
+    while ($new = $link->readlink) {
+        my $type = $new->type or return;
+        last if $type eq 'file';
+        last if $type eq 'dir';
+        return unless $type eq 'link';
+        return if $seen{$new->name}++;
+        $link = $new;
+    }
+    *$self->{target} = $new;
+}
 
 __DATA__
 

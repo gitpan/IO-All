@@ -1,6 +1,4 @@
 package IO::All::Filesys;
-use warnings;
-use strict;
 use Spiffy qw(-selfless);  # XXX (super); needs fixing in Spiffy
 use Fcntl qw(:flock);
 
@@ -84,8 +82,6 @@ sub utime {
     utime($atime, $mtime, $self->name);
     return $self;
 }
-
-1;
 
 __DATA__
 

@@ -1,4 +1,12 @@
 ---
+version: 0.32
+date:    Wed Dec 15 12:19:44 PST 2004
+changes:
+- io('path/to/symlink') would return a file object if the link was to a file
+- $link->readlink incorrectly returned a new IO::All::Link object, no matter what the link pointed to.
+- io($io_all_object) would not return an object of the same type as the object give to io(), it would always return a plain IO::All object.
+- add head and tail methods
+---
 version: 0.31
 date:    Sun Aug  8 22:49:46 PDT 2004
 changes:

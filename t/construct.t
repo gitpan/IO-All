@@ -23,7 +23,7 @@ test_file_contents($$io4, 't/construct.t');
 
 my $io5 = io->dir('t/mydir');
 is(ref($io5), 'IO::All::Dir');
-is(join('+', map $_->filename, $io5->all), 'dir1+dir2+file1+file2+file3');
+is(join('+', map $_->filename, grep {! /CVS|\.svn/} $io5->all), 'dir1+dir2+file1+file2+file3');
 
 my $io6 = io->rdonly->new->file('t/construct.t');
 ok($io6->_rdonly);
