@@ -2,7 +2,7 @@ package IO::All;
 use strict;
 use warnings;
 use 5.006_001;
-our $VERSION = '0.20';
+our $VERSION = '0.21';
 use Spiffy 0.16 qw(-Base !field);
 use Fcntl qw(:DEFAULT :flock);
 use Symbol();
@@ -119,7 +119,7 @@ sub new {
     return $new->stderr if $name eq '=';
     return $new->temp if $name eq '?';
     return $new->string if $name eq '$';
-    return $new->socket if $name =~ /^[\w\-\.]*:\d{1,5}$/;
+    return $new->socket($name) if $name =~ /^[\w\-\.]*:\d{1,5}$/;
     return $new->pipe($name) 
       if $name =~ s/^\s*\|\s*// or $name =~ s/\s*\|\s*$//;
     return $new->file($name) if -f $name;
@@ -399,12 +399,11 @@ sub accept {
         $self->throw("Unable to fork for IO::All::accept")
           unless defined $pid;
         last unless $pid;
-        print "Forked - $pid\n";
         close $socket;
         undef $socket;
     }
     close $server;
-    my $io = ref($self)->new(-socket_handle => $socket);
+    my $io = ref($self)->new->socket_handle($socket);
     $io->io_handle($socket);
     $io->is_open(1);
     return $io;
@@ -915,6 +914,7 @@ sub get_socket_domain_port {
     $self->domain($domain) unless defined $self->domain;
     $self->domain($self->_domain_default) unless $self->domain;
     $self->port($port) unless defined $self->port;
+    return $self;
 }
 
 sub getline_backwards {
@@ -1203,8 +1203,9 @@ sub overload_stringify {
 }
 
 sub overload_undefined {
+    require Carp;
     my $key = shift;
-    warn "Undefined behavior for overloaded IO::All operation: '$key'"
+    Carp::carp "Undefined behavior for overloaded IO::All operation: '$key'"
       if $^W;
     return 'overload_noop';
 }
@@ -1667,6 +1668,29 @@ another terminal window). It should print the 3 data lines each time.
 
 Note that it is important to close the socket if the server is forking,
 or else the socket won't go out of scope and close.
+
+=head2 A Tiny Web Server
+
+Here is how you could write a simplistic web server that works with static and
+dynamic pages:
+
+    perl -MIO::All -e 'io(":8080")->fork->accept->(sub { $_[0] < io(-x $1 ? "./$1 |" : $1) if /^GET \/(.*) / })'
+
+There is are a lot of subtle things going on here. First we accept a socket
+and fork the server. Then we overload the new socket as a code ref. This code
+ref takes one argument, another code ref, which is used as a callback. 
+
+The callback is called once for every line read on the socket. The line
+is put into C<$_> and the socket itself is passed in to the callback.
+
+Our callback is scanning the line in C<$_> for an HTTP GET request. If one is
+found it parses the file name into C<$1>. Then we use C<$1> to create an new
+IO::All file object... with a twist. If the file is executable (C<-x>), then
+we create a piped command as our IO::All object. This somewhat approximates
+CGI support.
+
+Whatever the resulting object is, we direct the contents back at our socket
+which is in C<$_[0]>. Pretty simple, eh? 
 
 =head2 DBM Files
 

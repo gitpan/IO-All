@@ -1,7 +1,7 @@
 use lib 't', 'lib';
 use strict;
 use warnings;
-use Test::More tests => 12;
+use Test::More tests => 18;
 use IO::All;
 use IO_All_Test;
 
@@ -28,3 +28,13 @@ is(join('+', map $_->filename, $io5->all), 'dir1+dir2+file1+file2+file3');
 my $io6 = io->rdonly->new->file('t/construct.t');
 ok($io6->_rdonly);
 test_file_contents(join('', map {"$_\n"} @$io6), 't/construct.t');
+
+my $io7 = io->socket('foo.com:80')->get_socket_domain_port;
+ok($io7->is_socket);
+is($io7->domain, 'foo.com');
+is($io7->port, '80');
+
+my $io8 = io(':8000')->get_socket_domain_port;
+ok($io8->is_socket);
+is($io8->domain, 'localhost');
+is($io8->port, '8000');
