@@ -1,12 +1,12 @@
 package IO::All;
 use strict;
-require 5.6.1;
 use warnings;
+use 5.006_001;
 use Spiffy qw(-base !attribute);
 use Fcntl qw(:DEFAULT :flock);
 use Symbol;
 use File::Spec;
-our $VERSION = '0.10';
+our $VERSION = '0.11';
 our @EXPORT = qw(io);
 
 spiffy_constructor 'io';
