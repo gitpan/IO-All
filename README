@@ -1,15 +1,38 @@
 NAME
     IO::All - IO::All of it to Graham and Damian!
 
+NOTE
+    If you've just read the perl.com article at
+    <http://www.perl.com/pub/a/2004/03/12/ioall.html>, there have already
+    been major additions thanks to the great feedback I've gotten from the
+    Perl community. Be sure and read the latest doc. Things are changing
+    fast.
+
+    Many of the changes have to do with operator overloading for IO::All
+    objects, which results in some fabulous new idioms.
+
 SYNOPSIS
         use IO::All;
 
-        # Combine two files into a third
-        my $my_stuff = io('./mystuff')->slurp;
-    
-        my $more_stuff = io('./morestuff')->getline(undef);  # alternate slurp
-    
-        io('./allstuff')->print($my_stuff, $more_stuff);
+        my $my_stuff = io('./mystuff')->slurp;  # Read a file
+        my $more_stuff < io('./morestuff');     # Read another file
+
+        io('./allstuff')->print($my_stuff, $more_stuff);  # Write to new file
+
+    or like this:
+
+        io('./mystuff') > io('./allstuff');
+        io('./morestuff') >> io('./allstuff');
+
+    or:
+
+        my $stuff < io('./mystuff');
+        io('./morestuff') >> $stuff;
+        io(./allstuff') << $stuff;
+
+    or:
+
+        ${io('./stuff')} . ${io('./morestuff')} > io('./allstuff');
 
 SYNOPSIS II
         use IO::All;
@@ -17,22 +40,23 @@ SYNOPSIS II
         # Print name and first line of all files in a directory
         my $dir = io('./mydir'); 
         while (my $io = $dir->read) {
-            if ($io->is_file) {
-                print $io->name, ' - ', $io->getline;
-            }
+            print $io->name, ' - ', $io->getline
+              if $io->is_file;
         }
 
         # Print name of all files recursively
-        print $_->name . "\n"
-          for io('./mydir')->all_files('-r');
+        print "$_\n" for io('./mydir')->All_Files;
 
 SYNOPSIS III
         use IO::All;
     
-        # Copy STDIN to STDOUT
+        # Various ways to copy STDIN to STDOUT
+        io('-') > io('-');
+    
+        io('-') < io('-');
+    
         io('-')->print(io('-')->slurp);
     
-        # Copy STDIN to STDOUT a block at a time
         my $stdin = io('-');
         my $stdout = io('-');
         $stdout->buffer($stdin->buffer);
@@ -75,10 +99,10 @@ DESCRIPTION
     IO::All object. And that object can do it all!
 
     The IO::All object is a proxy for IO::File, IO::Dir, IO::Socket,
-    IO::String and File::ReadBackwards. You can use most of the methods
-    found in these classes and in IO::Handle (which they all inherit from).
-    IO::All is easily subclassable. You can override any methods and also
-    add new methods of your own.
+    IO::String, Tie::File and File::ReadBackwards. You can use most of the
+    methods found in these classes and in IO::Handle (which they all inherit
+    from). IO::All is easily subclassable. You can override any methods and
+    also add new methods of your own.
 
     Optionally, every IO::All object can be tied to itself. This means that
     you can use most perl IO builtins on it: readline, <>, getc, print,
@@ -98,7 +122,7 @@ DESCRIPTION
 
     with this:
 
-        my $stuff = io('./mystuff')->slurp;
+        my $stuff < io('./mystuff');
 
     And that is a good thing!
 
@@ -143,6 +167,41 @@ USAGE
 COOKBOOK
     This section describes some various things that you can easily cook up
     with IO::All.
+
+  Operator Overloading
+    IO::All objects stringify to their file or directory name. This command
+    is a long way of doing "ls -1":
+
+        perl -MIO::All -le 'print for io(".")->all'
+
+    '>' and '<' move data between strings and files:
+
+        $content < io('file1');
+        $content > io('file2');
+        io('file2') > $content2;
+        io('file3') < $content2;
+        io('file3') > io('file4');
+        io('file5') < io('file4');
+
+    '>>' and '<<' do the same thing except the recipent string or file is
+    appended to.
+
+    An IO::All file used as an array reference becomes tied using Tie::File:
+
+        $file = io('file');
+        # Print last line of file
+        print $file->[-1];
+        # Insert new line in middle of file
+        $file->[$#{$file} / 2] = 'New line';
+
+    IO::All directories used as hashes have file names as keys, and IO::All
+    objects as values:
+
+        print io('dir')->{'foo.txt'}->slurp;
+
+    Files used as scalar references get slurped:
+
+            print ${io('dir')->{'foo.txt'}};
 
   File Locking
     IO::All makes it very easy to lock files. Just use the "-lock" flag.
@@ -360,14 +419,26 @@ INSTANCE METHODS
         The items returned are sorted by name unless the "-no_sort" flag is
         used.
 
+    * All()
+        Same as "all('-r')".
+
     * all_dirs()
         Same as "all()", but only return directories.
+
+    * All_Dirs()
+        Same as "all_dirs('-r')".
 
     * all_files()
         Same as "all()", but only return files.
 
+    * All_Files()
+        Same as "all_files('-r')".
+
     * all_links()
         Same as "all()", but only return links.
+
+    * All_Links()
+        Same as "all_links('-r')".
 
     * append()
         Same as print, but sets the file mode to '>>'.

@@ -6,7 +6,7 @@ use Spiffy qw(-base !attribute);
 use Fcntl qw(:DEFAULT :flock);
 use Symbol;
 use File::Spec;
-our $VERSION = '0.13';
+our $VERSION = '0.14';
 our @EXPORT = qw(io);
 
 spiffy_constructor 'io';
@@ -23,6 +23,7 @@ attribute domain_default => 'localhost';
 attribute flags => {};
 attribute handle => undef;
 attribute io_handle => undef;
+attribute tied_file => undef;
 attribute is_dir => 0;
 attribute is_file => 0;
 attribute is_link => 0;
@@ -188,6 +189,11 @@ sub accept {
     return $io;
 }
 
+sub All {
+    my $self = shift;
+    $self->all('-r');
+}
+
 sub all {
     my $self = shift;
     my @args = @_;
@@ -202,14 +208,29 @@ sub all {
     return sort {$a->name cmp $b->name} @all;
 }
 
+sub All_Dirs {
+    my $self = shift;
+    $self->all_dirs(-r => @_);
+}
+
 sub all_dirs {
     my $self = shift;
     grep $_->is_dir, $self->all(@_);
 }
 
+sub All_Files {
+    my $self = shift;
+    $self->all_files(-r => @_);
+}
+
 sub all_files {
     my $self = shift;
     grep $_->is_file, $self->all(@_);
+}
+
+sub All_Links {
+    my $self = shift;
+    $self->all_links(-r => @_);
 }
 
 sub all_links {
@@ -388,19 +409,11 @@ sub shutdown {
 sub slurp {
     my $self = shift;
     $self->assert_open_file('<');
-    my @slurp;
-    if (wantarray) {
-        while (defined(my $line = $self->io_handle->getline)) {
-            push @slurp, $line;
-        }
-    }
-    else {
-        local $/;
-        $slurp[0] = $self->io_handle->getline;
-    }
+    local $/;
+    my $slurp = $self->io_handle->getline;
     $self->error_check;
     $self->autoclose && $self->close;
-    return wantarray ? @slurp : $slurp[0];
+    return wantarray ? ($slurp =~ /(.*\n)/g) : $slurp;
 }
 
 sub temporary_file {
@@ -530,6 +543,17 @@ sub assert_open_socket {
     $self->io_handle($socket);
 }
 
+sub assert_tied_file {
+    my $self = shift;
+    return $self->tied_file || do {
+        eval {require Tie::File};
+        $self->throw("Tie::File required for file array operations") if $@;
+        my $array_ref = do { my @array; \@array };
+        tie @$array_ref, 'Tie::File', $self->name;
+        $self->tied_file($array_ref);
+    };
+}
+
 sub boolean_arguments {
     my $self = shift;
     (
@@ -620,7 +644,6 @@ sub open_file_msg {
       : '';
     return qq{Can't open file$name$direction:\n$!};
 }
-
 
 sub open_dir {
     my $self = shift;
@@ -723,6 +746,159 @@ sub proxy_open {
       };
 }
 
+#===============================================================================
+# overloading
+#===============================================================================
+my $old_warn_handler = $SIG{__WARN__}; 
+$SIG{__WARN__} = sub { 
+    if ($_[0] !~ /^Useless use of .+ \(.+\) in void context/) {
+        goto &$old_warn_handler if $old_warn_handler;
+        warn(@_);
+    }
+};
+    
+use overload '""' => 'overload_stringify';
+use overload '<<' => 'overload_left_bitshift';
+use overload '>>' => 'overload_right_bitshift';
+use overload '<' => 'overload_less_than';
+use overload '>' => 'overload_greater_than';
+use overload '${}' => 'overload_string_deref';
+use overload '@{}' => 'overload_array_deref';
+use overload '%{}' => 'overload_hash_deref';
+
+sub overload_table {
+    return {
+        'file < scalar' => 'overload_print',
+        'file < scalar swap' => 'overload_slurp_to',
+        'file << scalar' => 'overload_append',
+        'file << scalar swap' => 'overload_slurp_append',
+
+        'file > scalar' => 'overload_slurp_to',
+        'file > scalar swap' => 'overload_print',
+        'file >> scalar' => 'overload_slurp_append',
+        'file >> scalar swap' => 'overload_append',
+
+        'file > file' => 'overload_copy_to',
+        'file < file' => 'overload_copy_from',
+        'file >> file' => 'overload_cat_to',
+        'file << file' => 'overload_cat_from',
+
+        'file ${} scalar' => 'overload_slurp_ref',
+        'file @{} scalar' => 'overload_file_tie',
+        'dir @{} scalar' => 'overload_dir_all',
+        'dir %{} scalar' => 'overload_dir_hash',
+#         'file %{} scalar' => 'overload_file_stat',
+    };
+}
+
+sub overload_left_bitshift { shift->overload_handler(@_, '<<') }
+sub overload_right_bitshift { shift->overload_handler(@_, '>>') }
+sub overload_less_than { shift->overload_handler(@_, '<') }
+sub overload_greater_than { shift->overload_handler(@_, '>') }
+sub overload_string_deref { shift->overload_handler(@_, '${}') }
+sub overload_array_deref { shift->overload_handler(@_, '@{}') }
+sub overload_hash_deref { shift->overload_handler(@_, '%{}') }
+
+sub overload_handler {
+    my ($self) = @_;
+    my $method = $self->get_overload_method(@_);
+    $self->$method(@_);
+}
+
+sub get_overload_method {
+    my ($x, $self, $other, $swap, $operator) = @_;
+    my $arg1_type = 
+      $self->is_file ? 'file' :
+      $self->is_dir ? 'dir' :
+      $self->is_socket ? 'socket' :
+      defined $self->name ? 'file' :
+      'unknown';
+    my $arg2_type =
+      not(ref $other) ? 'scalar' :
+      not($other->isa('IO::All')) ? 'ref' :
+      $other->is_file ? 'file' :
+      $other->is_dir ? 'dir' :
+      $other->is_socket ? 'socket' :
+      defined $self->name ? 'file' :
+      'unknown';
+    my $key = "$arg1_type $operator $arg2_type" . ($swap ? ' swap' : '');
+    my $table = $self->overload_table;
+    return defined $table->{$key} 
+      ? $table->{$key}
+      : $self->overload_undefined($key);
+}
+
+sub overload_stringify {
+    my $self = shift;
+    my $name = $self->name;
+    return defined($name) ? $name : overload::StrVal($self);
+}
+
+sub overload_undefined {
+    my $self = shift;
+    my $key = shift;
+    warn "Undefined behavior for overloaded IO::All operation: '$key'";
+    return 'overload_noop';
+}
+
+sub overload_noop {
+    return;
+}
+
+sub overload_slurp_ref {
+    my $slurp = $_[1]->slurp;
+    return \$slurp;
+}
+
+sub overload_slurp_to {
+    $_[2] = $_[1]->slurp;
+}
+
+sub overload_slurp_append {
+    $_[2] .= $_[1]->slurp;
+}
+
+sub overload_print {
+    $_[1]->print($_[2]);
+}
+
+sub overload_append {
+    $_[1]->append($_[2]);
+}
+
+sub overload_file_tie {
+    $_[1]->assert_tied_file;
+}
+
+sub overload_dir_all {
+    [ $_[1]->all ];
+}
+
+sub overload_dir_hash {
+    +{ 
+        map {
+            (my $name = $_->name) =~ s/.*\///;
+            ($name, $_);
+        } $_[1]->all 
+    };
+}
+
+sub overload_copy_to {
+    $_[2]->print(scalar $_[1]->slurp);
+}
+
+sub overload_copy_from {
+    $_[1]->print(scalar $_[2]->slurp);
+}
+
+sub overload_cat_to {
+    $_[2]->append(scalar $_[1]->slurp);
+}
+
+sub overload_cat_from {
+    $_[1]->append(scalar $_[2]->slurp);
+}
+
 1;
 __END__
 
@@ -730,16 +906,39 @@ __END__
 
 IO::All - IO::All of it to Graham and Damian!
 
+=head1 NOTE
+
+If you've just read the perl.com article at
+L<http://www.perl.com/pub/a/2004/03/12/ioall.html>, there have already been
+major additions thanks to the great feedback I've gotten from the Perl
+community. Be sure and read the latest doc. Things are changing fast.
+
+Many of the changes have to do with operator overloading for IO::All objects,
+which results in some fabulous new idioms.
+
 =head1 SYNOPSIS
 
     use IO::All;
 
-    # Combine two files into a third
-    my $my_stuff = io('./mystuff')->slurp;
-    
-    my $more_stuff = io('./morestuff')->getline(undef);  # alternate slurp
-    
-    io('./allstuff')->print($my_stuff, $more_stuff);
+    my $my_stuff = io('./mystuff')->slurp;  # Read a file
+    my $more_stuff < io('./morestuff');     # Read another file
+
+    io('./allstuff')->print($my_stuff, $more_stuff);  # Write to new file
+
+or like this:
+
+    io('./mystuff') > io('./allstuff');
+    io('./morestuff') >> io('./allstuff');
+
+or:
+
+    my $stuff < io('./mystuff');
+    io('./morestuff') >> $stuff;
+    io(./allstuff') << $stuff;
+
+or:
+
+    ${io('./stuff')} . ${io('./morestuff')} > io('./allstuff');
 
 =head1 SYNOPSIS II
 
@@ -748,23 +947,24 @@ IO::All - IO::All of it to Graham and Damian!
     # Print name and first line of all files in a directory
     my $dir = io('./mydir'); 
     while (my $io = $dir->read) {
-        if ($io->is_file) {
-            print $io->name, ' - ', $io->getline;
-        }
+        print $io->name, ' - ', $io->getline
+          if $io->is_file;
     }
 
     # Print name of all files recursively
-    print $_->name . "\n"
-      for io('./mydir')->all_files('-r');
+    print "$_\n" for io('./mydir')->All_Files;
 
 =head1 SYNOPSIS III
 
     use IO::All;
     
-    # Copy STDIN to STDOUT
+    # Various ways to copy STDIN to STDOUT
+    io('-') > io('-');
+    
+    io('-') < io('-');
+    
     io('-')->print(io('-')->slurp);
     
-    # Copy STDIN to STDOUT a block at a time
     my $stdin = io('-');
     my $stdout = io('-');
     $stdout->buffer($stdin->buffer);
@@ -809,10 +1009,10 @@ idioms. It exports a single function called C<io>, which returns a new
 IO::All object. And that object can do it all!
 
 The IO::All object is a proxy for IO::File, IO::Dir, IO::Socket,
-IO::String and File::ReadBackwards. You can use most of the methods
-found in these classes and in IO::Handle (which they all inherit from).
-IO::All is easily subclassable. You can override any methods and also
-add new methods of your own.
+IO::String, Tie::File and File::ReadBackwards. You can use most of the
+methods found in these classes and in IO::Handle (which they all inherit
+from). IO::All is easily subclassable. You can override any methods and
+also add new methods of your own.
 
 Optionally, every IO::All object can be tied to itself. This means that
 you can use most perl IO builtins on it: readline, <>, getc, print,
@@ -832,7 +1032,7 @@ determined by the usage context. That means you can replace this:
 
 with this:
 
-    my $stuff = io('./mystuff')->slurp;
+    my $stuff < io('./mystuff');
 
 And that is a B<good thing>!
 
@@ -885,6 +1085,42 @@ Boolean. This option tells the object to flock the filehandle after open.
 
 This section describes some various things that you can easily cook up
 with IO::All.
+
+=head2 Operator Overloading
+
+IO::All objects stringify to their file or directory name. This command is a
+long way of doing C<ls -1>:
+
+    perl -MIO::All -le 'print for io(".")->all'
+
+'>' and '<' move data between strings and files:
+
+    $content < io('file1');
+    $content > io('file2');
+    io('file2') > $content2;
+    io('file3') < $content2;
+    io('file3') > io('file4');
+    io('file5') < io('file4');
+
+'>>' and '<<' do the same thing except the recipent string or file is
+appended to.
+
+An IO::All file used as an array reference becomes tied using Tie::File:
+
+    $file = io('file');
+    # Print last line of file
+    print $file->[-1];
+    # Insert new line in middle of file
+    $file->[$#{$file} / 2] = 'New line';
+
+IO::All directories used as hashes have file names as keys, and IO::All
+objects as values:
+
+    print io('dir')->{'foo.txt'}->slurp;
+
+Files used as scalar references get slurped:
+
+        print ${io('dir')->{'foo.txt'}};
 
 =head2 File Locking
 
@@ -1126,17 +1362,33 @@ The C<-r> flag can be used to get all files and subdirectories recursively.
 
 The items returned are sorted by name unless the C<-no_sort> flag is used.
 
+=item * All()
+
+Same as C<all('-r')>.
+
 =item * all_dirs()
 
 Same as C<all()>, but only return directories.
+
+=item * All_Dirs()
+
+Same as C<all_dirs('-r')>.
 
 =item * all_files()
 
 Same as C<all()>, but only return files.
 
+=item * All_Files()
+
+Same as C<all_files('-r')>.
+
 =item * all_links()
 
 Same as C<all()>, but only return links.
+
+=item * All_Links()
+
+Same as C<all_links('-r')>.
 
 =item * append()
 

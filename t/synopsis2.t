@@ -1,5 +1,5 @@
 use strict;
-use Test::More tests => 4;
+use Test::More tests => 9;
 use IO::All;
 use lib 't';
 use IO_All_Test;
@@ -15,16 +15,14 @@ while (my $io = $dir->next) {
 }
 
 # Print name of all files recursively
-# is($_->name . "\n", <DATA>)
-#   for io('t/mydir')->all_files('-r');
+is("$_\n", <DATA>)
+  for io('t/mydir')->all_files('-r');
 
 __END__
 t/mydir/file1 - file1 is fun
 t/mydir/file2 - file2 is woohoo
 t/mydir/file3 - file3 is whee
-t/mydir/dir1
 t/mydir/dir1/file1
-t/mydir/dir2
 t/mydir/dir2/file1
 t/mydir/file1
 t/mydir/file2

@@ -27,6 +27,7 @@ t/mydir/file1
 t/mydir/file2
 t/mydir/file3
 t/mystuff
+t/overload.t
 t/println.t
 t/read.t
 t/read_write.t
@@ -37,3 +38,4 @@ t/synopsis2.t
 t/synopsis3.t
 t/synopsis4.t
 t/synopsis5.t
+t/tie_file.t

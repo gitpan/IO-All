@@ -1,4 +1,10 @@
 ---
+version: 0.14
+date:    Mon Mar 15 00:19:21 PST 2004
+changes:
+- Added multiple dispatch overloading
+- Added Tie::File support
+---
 version: 0.13
 date:    Fri Mar 12 00:02:10 PST 2004
 changes:

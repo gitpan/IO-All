@@ -1,6 +1,6 @@
 use strict;
+use lib 't', 'lib';
 use Test::More tests => 5;
-use lib 't';
 use IO_Dumper;
 use IO_All_Test;
 
