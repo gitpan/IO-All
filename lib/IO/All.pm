@@ -6,7 +6,7 @@ use Spiffy qw(-base !attribute);
 use Fcntl qw(:DEFAULT :flock);
 use Symbol;
 use File::Spec;
-our $VERSION = '0.11';
+our $VERSION = '0.12';
 our @EXPORT = qw(io);
 
 spiffy_constructor 'io';

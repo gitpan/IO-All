@@ -1,4 +1,9 @@
 ---
+version: 0.12
+date:    Tue Mar  2 21:50:05 PST 2004
+changes:
+- Require IO::String
+---
 version: 0.11
 date:    Tue Mar  2 09:21:39 PST 2004
 changes:
