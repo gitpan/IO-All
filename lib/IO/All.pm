@@ -2,7 +2,7 @@ package IO::All;
 use Spiffy -XXX;
 use Spiffy 0.21 qw(-Base !field);
 use 5.006_001;
-our $VERSION = '0.32';
+our $VERSION = '0.33';
 use File::Spec();
 use Symbol();
 use Fcntl;

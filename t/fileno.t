@@ -1,9 +1,14 @@
 use lib 't', 'lib';
 use strict;
 use warnings;
-use Test::More tests => 7;
+use Test::More;
 use IO::All;
 use IO_All_Test;
+
+plan((lc($^O) eq 'mswin32' and defined $ENV{PERL5_CPANPLUS_IS_RUNNING})
+    ? (skip_all => "CPANPLUS/MSWin32 breaks this")
+    : (tests => 7)
+);
 
 is(io('-')->mode('<')->open->fileno, 0);
 is(io('-')->mode('>')->open->fileno, 1);

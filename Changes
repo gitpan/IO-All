@@ -1,4 +1,9 @@
 ---
+version: 0.33
+date:    Fri Dec 17 02:33:41 PST 2004
+changes:
+- Fixed some nagging problems with the tests
+---
 version: 0.32
 date:    Wed Dec 15 12:19:44 PST 2004
 changes:

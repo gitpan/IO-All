@@ -8,6 +8,6 @@ my $perl_version < io('perl -v|');
 ok($perl_version =~ /Larry Wall/);
 ok($perl_version =~ /This is perl/);
 
-io('perl -v|') > $perl_version;
+io("$^X -v|") > $perl_version;
 ok($perl_version =~ /Larry Wall/);
 ok($perl_version =~ /This is perl/);
