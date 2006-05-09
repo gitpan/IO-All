@@ -4,7 +4,7 @@ no_index:
     - t
 generated_by: hand
 distribution_type: module
-version: 0.34
+version: 0.35
 name: IO-All
 author: Ingy döt Net <ingy@cpan.org>
 license: perl

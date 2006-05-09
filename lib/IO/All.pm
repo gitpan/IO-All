@@ -3,7 +3,7 @@ use 5.006001;
 use strict;
 use warnings;
 use IO::All::Base -base;
-our $VERSION = '0.34';
+our $VERSION = '0.35';
 use File::Spec();
 use Symbol();
 use Fcntl;

@@ -2,7 +2,6 @@ package IO::All::Base;
 use strict;
 use warnings;
 use Fcntl;
-use XXX;
 
 sub import {
     my $class = shift;
@@ -12,7 +11,7 @@ sub import {
     if ($flag eq '-base') {
         push @{$package . "::ISA"}, $class;
         *{$package . "::$_"} = \&$_
-          for qw'field const option chain proxy proxy_open XXX WWW';
+          for qw'field const option chain proxy proxy_open';
     }
     elsif ($flag eq -mixin) {
         mixin_import(scalar(caller(0)), $class, @_);

@@ -79,3 +79,4 @@ t/synopsis3.t
 t/synopsis5.t
 t/tie.t
 t/tie_file.t
+t/xxx.t

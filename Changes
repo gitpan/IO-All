@@ -1,4 +1,9 @@
 ---
+version: 0.35
+date:    
+Tue May  9 08:25:37 PDT 2006 changes:
+- Remove dependency on XXX.pm *groan*
+---
 version: 0.34
 date:    Mon May  8 01:03:12 PDT 2006
 changes:
