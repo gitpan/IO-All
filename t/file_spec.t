@@ -19,8 +19,12 @@ ok(io->updir->is_dir);
 like(io->case_tolerant, qr/^[01]$/);
 ok(io('/foo/bar')->is_absolute);
 ok(not io('foo/bar')->is_absolute);
-is(scalar(@{[io->path]}), scalar(
-    @{[split((($^O eq 'MSWin32') ? ';' : ':'), $ENV{PATH})]}));
+my @path1 = io->path;
+shift @path1 if $path1[0]->name eq '.';
+my $path2 = $ENV{PATH};
+$path2 =~ s/^\.[;:]//;
+is(scalar(@path1), scalar(
+    @{[split((($^O eq 'MSWin32') ? ';' : ':'), $path2)]}));
 my ($v, $d, $f) = io('foo/bar')->splitpath;
 is($d, 'foo/');
 is($f, 'bar');

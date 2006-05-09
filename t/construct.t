@@ -27,7 +27,13 @@ is(join('+', map $_->filename, grep {! /CVS|\.svn/} $io5->all), 'dir1+dir2+file1
 
 my $io6 = io->rdonly->new->file('t/construct.t');
 ok($io6->_rdonly);
-test_file_contents(join('', map {"$_\n"} @$io6), 't/construct.t');
+
+SKIP: {
+    eval {require Tie::File};
+    skip "requires Tie::File", 1	if $@;
+
+    test_file_contents(join('', map {"$_\n"} @$io6), 't/construct.t');
+}
 
 my $io7 = io->socket('foo.com:80')->get_socket_domain_port;
 ok($io7->is_socket);

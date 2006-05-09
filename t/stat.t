@@ -17,7 +17,7 @@ is($io->uid, $uid);
 is($io->gid, $gid);
 is($io->device_id, $rdev);
 is($io->size, $size);
-is($io->atime, $atime);
+ok(($io->atime == $atime) || ($io->atime == ($atime+1)));
 is($io->mtime, $mtime);
 is($io->ctime, $ctime);
 is($io->blksize, $blksize);

@@ -1,6 +1,8 @@
 package IO::All::Dir;
-use IO::All -Base;
-use mixin 'IO::All::Filesys';
+use strict;
+use warnings;
+use IO::All::Filesys -base;
+use IO::All -base;
 use IO::Dir;
 
 #===============================================================================
@@ -12,12 +14,14 @@ field 'chdir_from';
 
 #===============================================================================
 sub dir {
+    my $self = shift;
     bless $self, __PACKAGE__;
     $self->name(shift) if @_;
     return $self->_init;
 }
 
 sub dir_handle {
+    my $self = shift;
     bless $self, __PACKAGE__;
     $self->_handle(shift) if @_;
     return $self->_init;
@@ -25,11 +29,13 @@ sub dir_handle {
 
 #===============================================================================
 sub assert_open {
+    my $self = shift;
     return if $self->is_open;
     $self->open;
 }
 
 sub open {
+    my $self = shift;
     $self->is_open(1);
     $self->assert_dirpath($self->pathname)
       if $self->pathname and $self->_assert;
@@ -41,6 +47,7 @@ sub open {
 }
 
 sub open_msg {
+    my $self = shift;
     my $name = defined $self->pathname
       ? " '" . $self->pathname . "'"
       : '';
@@ -49,10 +56,12 @@ sub open_msg {
 
 #===============================================================================
 sub All {
+    my $self = shift;
     $self->all(0);
 }
 
 sub all {
+    my $self = shift;
     my $depth = @_ ? shift(@_) : $self->_deep ? 0 : 1;
     my $first = not @_;
     my @all;
@@ -68,30 +77,37 @@ sub all {
 }
 
 sub All_Dirs {
+    my $self = shift;
     $self->all_dirs(0);
 }
 
 sub all_dirs {
+    my $self = shift;
     grep {$_->is_dir} $self->all(@_);
 }
 
 sub All_Files {
+    my $self = shift;
     $self->all_files(0);
 }
 
 sub all_files {
+    my $self = shift;
     grep {$_->is_file} $self->all(@_);
 }
 
 sub All_Links {
+    my $self = shift;
     $self->all_links(0);
 }
 
 sub all_links {
+    my $self = shift;
     grep {$_->is_link} $self->all(@_);
 }
 
 sub chdir {
+    my $self = shift;
     require Cwd;
     $self->chdir_from(Cwd::cwd());
     CORE::chdir($self->pathname);
@@ -99,6 +115,7 @@ sub chdir {
 }
 
 sub empty {
+    my $self = shift;
     my $dh;
     opendir($dh, $self->pathname) or die;
     while (my $dir = readdir($dh)) {
@@ -108,6 +125,7 @@ sub empty {
 }
 
 sub mkdir {
+    my $self = shift;
     defined($self->perms)
     ? CORE::mkdir($self->pathname, $self->perms)
     : CORE::mkdir($self->pathname);
@@ -115,12 +133,14 @@ sub mkdir {
 }
 
 sub mkpath {
+    my $self = shift;
     require File::Path;
     File::Path::mkpath($self->pathname, @_);
     return $self;
 }
 
 sub next {
+    my $self = shift;
     $self->assert_open;
     my $name = $self->readdir;
     return unless defined $name;
@@ -130,6 +150,7 @@ sub next {
 }
 
 sub readdir {
+    my $self = shift;
     $self->assert_open;
     if (wantarray) {
         my @return = grep { 
@@ -150,18 +171,21 @@ sub readdir {
 }
 
 sub rmdir {
+    my $self = shift;
     rmdir $self->pathname;
 }
 
 sub rmtree {
+    my $self = shift;
     require File::Path;
     File::Path::rmtree($self->pathname, @_);
 }
 
 sub DESTROY {
+    my $self = shift;
     CORE::chdir($self->chdir_from)
       if $self->chdir_from;
-    super;
+      # $self->SUPER::DESTROY(@_);
 }
 
 #===============================================================================
@@ -172,11 +196,11 @@ sub overload_table {
     )
 }
 
-sub overload_as_array() {
+sub overload_as_array {
     [ $_[1]->all ];
 }
 
-sub overload_as_hash() {
+sub overload_as_hash {
     +{ 
         map {
             (my $name = $_->pathname) =~ s/.*[\/\\]//;
@@ -184,8 +208,6 @@ sub overload_as_hash() {
         } $_[1]->all 
     };
 }
-
-__DATA__
 
 =head1 NAME 
 
@@ -211,3 +233,5 @@ under the same terms as Perl itself.
 See http://www.perl.com/perl/misc/Artistic.html
 
 =cut
+
+1;

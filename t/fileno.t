@@ -7,7 +7,9 @@ use IO_All_Test;
 
 plan((lc($^O) eq 'mswin32' and defined $ENV{PERL5_CPANPLUS_IS_RUNNING})
     ? (skip_all => "CPANPLUS/MSWin32 breaks this")
-    : (tests => 7)
+    : ($] < 5.008003)
+      ? (skip_all => 'Broken on older perls')
+      : (tests => 7)
 );
 
 is(io('-')->mode('<')->open->fileno, 0);

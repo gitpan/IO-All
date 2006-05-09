@@ -1,9 +1,12 @@
 package IO::All::MLDBM;
-use IO::All::DBM -Base;
+use strict;
+use warnings;
+use IO::All::DBM -base;
 
 field _serializer => 'Data::Dumper';
 
 sub mldbm {
+    my $self = shift;
     bless $self, __PACKAGE__;    
     my ($serializer) = grep { /^(Storable|Data::Dumper|FreezeThaw)$/ } @_;
     $self->_serializer($serializer) if defined $serializer;
@@ -13,6 +16,7 @@ sub mldbm {
 }
 
 sub tie_dbm {
+    my $self = shift;
     my $filename = $self->name;
     my $dbm_class = $self->_dbm_class;
     my $serializer = $self->_serializer;
@@ -26,8 +30,6 @@ sub tie_dbm {
       if $self->_utf8;
     $self->tied_file($hash);
 }
-
-__DATA__
 
 =head1 NAME 
 
@@ -53,3 +55,5 @@ under the same terms as Perl itself.
 See http://www.perl.com/perl/misc/Artistic.html
 
 =cut
+
+1;

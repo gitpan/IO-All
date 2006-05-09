@@ -1,5 +1,7 @@
 package IO::All::Socket;
-use IO::All -Base;
+use strict;
+use warnings;
+use IO::All -base;
 use IO::Socket;
 
 const type => 'socket';
@@ -12,18 +14,21 @@ proxy_open 'recv';
 proxy_open 'send';
 
 sub socket {
+    my $self = shift;
     bless $self, __PACKAGE__;
     $self->name(shift) if @_;
     return $self->_init;
 }
 
 sub socket_handle {
+    my $self = shift;
     bless $self, __PACKAGE__;
     $self->_handle(shift) if @_;
     return $self->_init;
 }
 
 sub accept {
+    my $self = shift;
     use POSIX ":sys_wait_h";
     sub REAPER {
         while (waitpid(-1, WNOHANG) > 0) {}
@@ -46,7 +51,7 @@ sub accept {
         close $socket;
         undef $socket;
     }
-    close $server;
+    close $server if $self->_fork;
     my $io = ref($self)->new->socket_handle($socket);
     $io->io_handle($socket);
     $io->is_open(1);
@@ -54,6 +59,7 @@ sub accept {
 }
 
 sub shutdown {
+    my $self = shift;
     my $how = @_ ? shift : 2;
     my $handle = $self->io_handle;
     $handle->shutdown(2)
@@ -61,12 +67,14 @@ sub shutdown {
 }
 
 sub assert_open {
+    my $self = shift;
     return if $self->is_open;
     $self->mode(shift) unless $self->mode;
     $self->open;
 }
 
 sub open {
+    my $self = shift;
     return if $self->is_open;
     $self->is_open(1);
     $self->get_socket_domain_port;
@@ -90,6 +98,7 @@ sub open {
 }
 
 sub get_socket_domain_port {
+    my $self = shift;
     my ($domain, $port);
     ($domain, $port) = split /:/, $self->name
       if defined $self->name;
@@ -100,13 +109,15 @@ sub get_socket_domain_port {
 }
 
 sub overload_table {
+    my $self = shift;
     (
-        super,
+        $self->SUPER::overload_table(@_),
         '&{} socket' => 'overload_socket_as_code',
     )
 }
 
 sub overload_socket_as_code {
+    my $self = shift;
     sub {
         my $coderef = shift;
         while ($self->is_open) {
@@ -117,16 +128,16 @@ sub overload_socket_as_code {
 }
 
 sub overload_any_from_any {
-    super;
+    my $self = shift;
+    $self->SUPER::overload_any_from_any(@_);
     $self->close;
 }
 
 sub overload_any_to_any {
-    super;
+    my $self = shift;
+    $self->SUPER::overload_any_to_any(@_);
     $self->close;
 }
-
-__DATA__
 
 =head1 NAME 
 
@@ -152,3 +163,5 @@ under the same terms as Perl itself.
 See http://www.perl.com/perl/misc/Artistic.html
 
 =cut
+
+1;

@@ -9,6 +9,7 @@ inc/Module/Install/Win32.pm
 inc/Module/Install/WriteAll.pm
 lib/IO/All.pm
 lib/IO/All.pod
+lib/IO/All/Base.pm
 lib/IO/All/DBM.pm
 lib/IO/All/Dir.pm
 lib/IO/All/File.pm
@@ -25,6 +26,7 @@ MANIFEST			This list of files
 META.yml
 README
 t/absolute.t
+t/accept.t
 t/all.t
 t/all2.t
 t/assert.t
@@ -57,6 +59,7 @@ t/mydir/file1
 t/mydir/file2
 t/mydir/file3
 t/mystuff
+t/new.t
 t/overload.t
 t/pipe.t
 t/print.t
@@ -67,8 +70,8 @@ t/round_robin.t
 t/scalar.t
 t/seek.t
 t/separator.t
-t/spiffy.t
 t/stat.t
+t/string_open.t
 t/subtleties.t
 t/synopsis1.t
 t/synopsis2.t

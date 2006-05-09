@@ -24,14 +24,19 @@ test_file_contents($contents, 't/input.t');
 $contents = join '', $io->getlines;
 test_file_contents($contents, 't/input.t');
 
-$io->rdonly;
-$contents = join '', map "$_\n", @$io;
-test_file_contents($contents, 't/input.t');
-$io->close;
+SKIP: {
+    eval {require Tie::File};
+    skip "requires Tie::File", 2	if $@;
 
-$io->tie;
-$contents = join '', <$io>;
-test_file_contents($contents, 't/input.t');
+    $io->rdonly;
+    $contents = join '', map "$_\n", @$io;
+    test_file_contents($contents, 't/input.t');
+    $io->close;
+
+    $io->tie;
+    $contents = join '', <$io>;
+    test_file_contents($contents, 't/input.t');
+}
 
 my @lines = io('t/input.t')->slurp;
 ok(@lines > 36);

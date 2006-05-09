@@ -1,6 +1,8 @@
 package IO::All::File;
-use IO::All -Base;
-use mixin 'IO::All::Filesys';
+use strict;
+use warnings;
+use IO::All::Filesys -base;
+use IO::All -base;
 use IO::File;
 
 #===============================================================================
@@ -9,12 +11,14 @@ field tied_file => undef;
 
 #===============================================================================
 sub file {
+    my $self = shift;
     bless $self, __PACKAGE__;
     $self->name(shift) if @_;
     return $self->_init;
 }
 
 sub file_handle {
+    my $self = shift;
     bless $self, __PACKAGE__;
     $self->_handle(shift) if @_;
     return $self->_init;
@@ -22,6 +26,7 @@ sub file_handle {
 
 #===============================================================================
 sub assert_filepath {
+    my $self = shift;
     my $name = $self->pathname
       or return;
     my $directory;
@@ -30,6 +35,7 @@ sub assert_filepath {
 }
 
 sub assert_open_backwards {
+    my $self = shift;
     return if $self->is_open;
     require File::ReadBackwards;
     my $file_name = $self->pathname;
@@ -40,12 +46,14 @@ sub assert_open_backwards {
 }
 
 sub assert_open {
+    my $self = shift;
     return if $self->is_open;
     $self->mode(shift) unless $self->mode;
     $self->open;
 }
 
 sub assert_tied_file {
+    my $self = shift;
     return $self->tied_file || do {
         eval {require Tie::File};
         $self->throw("Tie::File required for file array operations:\n$@") 
@@ -62,6 +70,7 @@ sub assert_tied_file {
 }
 
 sub open {
+    my $self = shift;
     $self->is_open(1);
     $self->assert_filepath if $self->_assert;
     my ($mode, $perms) = @_;
@@ -91,6 +100,7 @@ my %mode_msg = (
     '>>' => 'append',
 );
 sub open_msg {
+    my $self = shift;
     my $name = defined $self->pathname
       ? " '" . $self->pathname . "'"
       : '';
@@ -102,6 +112,7 @@ sub open_msg {
 
 #===============================================================================
 sub close {
+    my $self = shift;
     return unless $self->is_open;
     $self->is_open(0);
     my $io_handle = $self->io_handle;
@@ -124,20 +135,24 @@ sub close {
 }
 
 sub empty {
+    my $self = shift;
     -z $self->pathname;
 }
 
 sub filepath {
+    my $self = shift;
     my ($volume, $path) = $self->splitpath;
     return File::Spec->catpath($volume, $path, '');
 }
 
 sub getline_backwards {
+    my $self = shift;
     $self->assert_open_backwards;
     return $self->io_handle->readline;
 }
 
 sub getlines_backwards {
+    my $self = shift;
     my @lines;
     while (defined (my $line = $self->getline_backwards)) {
         push @lines, $line;
@@ -146,6 +161,7 @@ sub getlines_backwards {
 }
 
 sub head {
+    my $self = shift;
     my $lines = shift || 10;
     my @return;
     $self->close;
@@ -157,6 +173,7 @@ sub head {
 }
 
 sub tail {
+    my $self = shift;
     my $lines = shift || 10;
     my @return;
     $self->close;
@@ -168,7 +185,9 @@ sub tail {
 }
 
 sub touch {
-    return super if -e $self->pathname;
+    my $self = shift;
+    return $self->SUPER::touch(@_)
+      if -e $self->pathname;
     return $self if $self->is_open;
     my $mode = $self->mode;
     $self->mode('>>')->open->close;
@@ -177,13 +196,15 @@ sub touch {
 }
 
 sub unlink {
+    my $self = shift;
     unlink $self->pathname;
 }
 
 #===============================================================================
 sub overload_table {
+    my $self = shift;
     (
-        super,
+        $self->SUPER::overload_table(@_),
         'file > file' => 'overload_file_to_file',
         'file < file' => 'overload_file_from_file',
         '${} file' => 'overload_file_as_scalar',
@@ -192,34 +213,32 @@ sub overload_table {
     )
 }
 
-sub overload_file_to_file() {
+sub overload_file_to_file {
     require File::Copy;
     File::Copy::copy($_[1]->pathname, $_[2]->pathname);
     $_[2];
 }
 
-sub overload_file_from_file() {
+sub overload_file_from_file {
     require File::Copy;
     File::Copy::copy($_[2]->pathname, $_[1]->pathname);
     $_[1];
 }
 
-sub overload_file_as_array() {
+sub overload_file_as_array {
     $_[1]->assert_tied_file;
 }
 
-sub overload_file_as_dbm() {
+sub overload_file_as_dbm {
     $_[1]->dbm
       unless $_[1]->isa('IO::All::DBM');
     $_[1]->assert_open;
 }
 
-sub overload_file_as_scalar() {
+sub overload_file_as_scalar {
     my $scalar = $_[1]->scalar;
     return \$scalar;
 }
-
-__DATA__
 
 =head1 NAME 
 
@@ -245,3 +264,5 @@ under the same terms as Perl itself.
 See http://www.perl.com/perl/misc/Artistic.html
 
 =cut
+
+1;

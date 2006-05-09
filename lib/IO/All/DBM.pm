@@ -1,5 +1,7 @@
 package IO::All::DBM;
-use IO::All::File -Base;
+use strict;
+use warnings;
+use IO::All::File -base;
 use Fcntl;
 
 field _dbm_list => [];
@@ -7,19 +9,22 @@ field '_dbm_class';
 field _dbm_extra => [];
 
 sub dbm {
+    my $self = shift;
     bless $self, __PACKAGE__;
     $self->_dbm_list([@_]);
     return $self;
 }
 
 sub assert_open {
+    my $self = shift;
     return $self->tied_file 
       if $self->tied_file;
     $self->open;
 }
 
 sub assert_filepath {
-    super;
+    my $self = shift;
+    $self->SUPER::assert_filepath(@_);
     if ($self->_rdonly and not -e $self->pathname) {
         my $rdwr = $self->_rdwr;
         $self->assert(0)->rdwr(1)->rdonly(0)->open;
@@ -29,6 +34,7 @@ sub assert_filepath {
 }
 
 sub open {
+    my $self = shift;
     $self->is_open(1);
     return $self->tied_file if $self->tied_file;
     $self->assert_filepath if $self->_assert;
@@ -63,6 +69,7 @@ sub open {
 }
 
 sub tie_dbm {
+    my $self = shift;
     my $hash;
     my $filename = $self->name;
     my $db = tie %$hash, $self->_dbm_class, $filename, $self->mode, $self->perms, 
@@ -74,14 +81,13 @@ sub tie_dbm {
 }
 
 sub add_utf8_dbm_filter {
+    my $self = shift;
     my $db = shift;
     $db->filter_store_key(sub { utf8::encode($_) });
     $db->filter_store_value(sub { utf8::encode($_) });
     $db->filter_fetch_key(sub { utf8::decode($_) });
     $db->filter_fetch_value(sub { utf8::decode($_) });
 }
-
-__DATA__
 
 =head1 NAME 
 
@@ -107,3 +113,5 @@ under the same terms as Perl itself.
 See http://www.perl.com/perl/misc/Artistic.html
 
 =cut
+
+1;

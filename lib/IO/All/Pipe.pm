@@ -1,22 +1,27 @@
 package IO::All::Pipe;
-use IO::All -Base;
+use strict;
+use warnings;
+use IO::All -base;
 use IO::File;
 
 const type => 'pipe';
 
 sub pipe {
+    my $self = shift;
     bless $self, __PACKAGE__;
     $self->name(shift) if @_;
     return $self->_init;
 }
 
 sub assert_open {
+    my $self = shift;
     return if $self->is_open;
     $self->mode(shift) unless $self->mode;
     $self->open;
 }
 
 sub open {
+    my $self = shift;
     $self->is_open(1);
     require IO::Handle;
     $self->io_handle(IO::Handle->new)
@@ -38,6 +43,7 @@ my %mode_msg = (
     '>>' => 'append',
 );
 sub open_msg {
+    my $self = shift;
     my $name = defined $self->name
       ? " '" . $self->name . "'"
       : '';
@@ -46,8 +52,6 @@ sub open_msg {
       : '';
     return qq{Can't open pipe$name$direction:\n$!};
 }
-
-__DATA__
 
 =head1 NAME 
 
@@ -73,3 +77,5 @@ under the same terms as Perl itself.
 See http://www.perl.com/perl/misc/Artistic.html
 
 =cut
+
+1;

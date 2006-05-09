@@ -1,14 +1,13 @@
-name: IO-All
-version: 0.33
-abstract: IO::All of it to Graham and Damian
-author: Brian Ingerson <ingy@cpan.org>
-license: perl
-distribution_type: module
-requires:
-  perl: 5.6.1
-  Spiffy: 0.21
-  Filter::Util::Call: 0
-no_index:
-  directory:
+no_index: 
+  directory: 
     - inc
-generated_by: Module::Install version 0.36
+    - t
+generated_by: hand
+distribution_type: module
+version: 0.34
+name: IO-All
+author: Ingy döt Net <ingy@cpan.org>
+license: perl
+requires: 
+  perl: 5.6.1
+abstract: IO::All of it to Graham and Damian!

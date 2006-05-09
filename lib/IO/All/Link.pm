@@ -1,25 +1,31 @@
 package IO::All::Link;
-use IO::All::File -Base;
+use strict;
+use warnings;
+use IO::All::File -base;
 
 const type => 'link';
 
 sub link {
+    my $self = shift;
     bless $self, __PACKAGE__;
     $self->name(shift) if @_;
     $self->_init;
 }
 
 sub readlink {
+    my $self = shift;
     IO::All->new(CORE::readlink($self->name));
 }
 
 sub symlink {
+    my $self = shift;
     my $target = shift;
     $self->assert_filepath if $self->_assert;
     CORE::symlink($target, $self->pathname);
 }
 
 sub AUTOLOAD {
+    my $self = shift;
     our $AUTOLOAD;
     (my $method = $AUTOLOAD) =~ s/.*:://;
     my $target = $self->target;
@@ -31,6 +37,7 @@ sub AUTOLOAD {
 }
 
 sub target {
+    my $self = shift;
     return *$self->{target} if *$self->{target};
     my %seen;
     my $link = $self;
@@ -45,8 +52,6 @@ sub target {
     }
     *$self->{target} = $new;
 }
-
-__DATA__
 
 =head1 NAME 
 
@@ -72,3 +77,5 @@ under the same terms as Perl itself.
 See http://www.perl.com/perl/misc/Artistic.html
 
 =cut
+
+1;

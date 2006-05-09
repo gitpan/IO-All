@@ -1,4 +1,12 @@
 ---
+version: 0.34
+date:    Mon May  8 01:03:12 PDT 2006
+changes:
+- Remove dependency on Spiffy.pm
+- Apply patches and fix bugs from rt
+- rt tickets - 11552 12048 14184 12966 13879 17105 7448 11463 7410 7337 7527
+  18465
+---
 version: 0.33
 date:    Fri Dec 17 02:33:41 PST 2004
 changes:
@@ -7,9 +15,9 @@ changes:
 version: 0.32
 date:    Wed Dec 15 12:19:44 PST 2004
 changes:
-- io('path/to/symlink') would return a file object if the link was to a file
-- $link->readlink incorrectly returned a new IO::All::Link object, no matter what the link pointed to.
-- io($io_all_object) would not return an object of the same type as the object give to io(), it would always return a plain IO::All object.
+- io('path/to/symlink') would return a file object if the link was to a file. (Dave Rolsky)
+- $link->readlink incorrectly returned a new IO::All::Link object, no matter what the link pointed to. (Dave Rolsky)
+- io($io_all_object) would not return an object of the same type as the object give to io(), it would always return a plain IO::All object. (Dave Rolsky)
 - add head and tail methods
 ---
 version: 0.31

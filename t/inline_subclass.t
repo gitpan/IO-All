@@ -1,11 +1,17 @@
 use lib 't', 'lib';
+use strict;
 
 package IO::Dumper;
-use IO::All '-Base';
+use IO::All -base;
 use Data::Dumper;
+
+our @EXPORT = 'io';
+
+sub io { return IO::Dumper->new(@_) };
 
 package IO::All::Filesys;
 sub dump {
+    my $self = shift;
     $self->print(Data::Dumper::Dumper(@_));
     return $self;
 } 

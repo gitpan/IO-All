@@ -117,7 +117,7 @@ DESCRIPTION
     "Graham Barr for doing it all. Damian Conway for doing it all
     different."
 
-    IO::All combines all of the best Perl IO modules into a single Spiffy
+    IO::All combines all of the best Perl IO modules into a single nifty
     object oriented interface to greatly simplify your everyday Perl IO
     idioms. It exports a single function called "io", which returns a new
     IO::All object. And that object can do it all!
@@ -389,8 +389,7 @@ COOKBOOK
 
   File Subclassing
     Subclassing is easy with IO::All. Just create a new module and use
-    IO::All as the base class. Since IO::All is a Spiffy module, you do it
-    like this:
+    IO::All as the base class, like this:
 
         package NewModule;
         use IO::All -base;
@@ -987,7 +986,8 @@ THE IO::All METHODS
         a temporary file.
 
     * is_writable
-        Returns true if file or directory is writable.
+        Returns true if file or directory is writable. Can also be spelled
+        as "is_writeable".
 
     * length
         Return the length of the internal buffer.
@@ -1352,9 +1352,6 @@ SEE ALSO
     IO::Handle, IO::File, IO::Dir, IO::Socket, IO::String, File::Spec,
     File::Path, File::ReadBackwards, Tie::File
 
-    Also check out the Spiffy module if you are interested in extending this
-    module.
-
 CREDITS
     A lot of people have sent in suggestions, that have become a part of
     IO::All. Thank you.
@@ -1373,6 +1370,8 @@ AUTHOR
 
 COPYRIGHT
     Copyright (c) 2004. Brian Ingerson. All rights reserved.
+
+    Copyright (c) 2006. Ingy döt Net. All rights reserved.
 
     This program is free software; you can redistribute it and/or modify it
     under the same terms as Perl itself.

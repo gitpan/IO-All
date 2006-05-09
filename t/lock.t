@@ -6,9 +6,9 @@ use IO::All;
 use IO_All_Test;
 
 # XXX This needs to be fixed!!!
-plan( $^O !~ /^(cygwin|solaris)$/
+plan( $^O !~ /^(cygwin|solaris|hpux)$/
     ? (tests => 3)
-    : (skip_all => "XXX - locking problems on solaris/cygwin")
+    : (skip_all => "XXX - locking problems on solaris/cygwin/hpux")
 );
 
 my $io1 = io('t/output/foo')->lock;

@@ -1,21 +1,24 @@
 package IO::All::String;
-use IO::All -Base;
+use strict;
+use warnings;
+use IO::All -base;
 use IO::String;
 
 const type => 'string';
 proxy 'string_ref';
 
 sub string {
+    my $self = shift;
     bless $self, __PACKAGE__;
     $self->_init;
 }
 
 sub open {
+    my $self = shift;
     $self->io_handle(IO::String->new);
     $self->set_binmode;
+    $self->is_open(1);
 }
-
-__DATA__
 
 =head1 NAME 
 
@@ -41,3 +44,5 @@ under the same terms as Perl itself.
 See http://www.perl.com/perl/misc/Artistic.html
 
 =cut
+
+1;
