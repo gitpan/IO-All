@@ -1584,7 +1584,7 @@ Finally, thanks to Autrijus Tang, for always having one more good idea.
 
 =head1 AUTHOR
 
-Brian Ingerson <ingy@cpan.org>
+Ingy döt Net <ingy@cpan.org>
 
 =head1 COPYRIGHT
 

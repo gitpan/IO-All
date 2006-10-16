@@ -1,3 +1,9 @@
+version: 0.36
+date:    Mon Oct 16 14:48:58 PDT 2006
+- Applied the patch from 
+  http://rt.cpan.org/Public/Bug/Display.html?id=20053:
+  Made sure Carp is required and the sub Carp::carp is predeclared in
+  IO/All.pm.
 ---
 version: 0.35
 date:    
