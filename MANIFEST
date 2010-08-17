@@ -29,6 +29,7 @@ t/absolute.t
 t/accept.t
 t/all.t
 t/all2.t
+t/append.t
 t/assert.t
 t/assert2.t
 t/autotie.t
