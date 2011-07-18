@@ -1,12 +1,9 @@
-use inc::Module::Install;
+use inc::Module::Package 'Ingy:modern 0.12';
 
-name        'IO-All';
-all_from    'lib/IO/All.pm';
+requires    'IO::String' => '1.08';
+recommends  'File::ReadBackwards';
 
-requires    'IO::String' => '0';
-
+# XXX Not working yet...
 # use_gloom   'IO::All::Base';
 
 clean_files 't/output/';
-
-WriteAll;

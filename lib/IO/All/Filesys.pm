@@ -4,14 +4,6 @@ use warnings;
 use IO::All::Base -base;
 use Fcntl qw(:flock);
 
-sub absolute {
-    my $self = shift;
-    $self->pathname(File::Spec->rel2abs($self->pathname))
-      unless $self->is_absolute;
-    $self->is_absolute(1);
-    return $self;
-}
-
 sub exists { my $self = shift; -e $self->name }
 
 sub filename {
@@ -24,7 +16,7 @@ sub filename {
 sub is_absolute {
     my $self = shift;
     return *$self->{is_absolute} = shift if @_;
-    return *$self->{is_absolute} 
+    return *$self->{is_absolute}
       if defined *$self->{is_absolute};
     *$self->{is_absolute} = IO::All::is_absolute($self) ? 1 : 0;
 }
@@ -102,7 +94,7 @@ sub utime {
 
 =encoding utf8
 
-=head1 NAME 
+=head1 NAME
 
 IO::All::Filesys - File System Methods Mixin for IO::All
 

@@ -2,20 +2,24 @@ package IO::All;
 use 5.006001;
 use strict;
 use warnings;
+
 require Carp;
 # So one can use Carp::carp "$message" - without the parenthesis.
 sub Carp::carp;
+
 use IO::All::Base -base;
-our $VERSION = '0.41';
+
 use File::Spec();
 use Symbol();
 use Fcntl;
+
+our $VERSION = '0.42';
 our @EXPORT = qw(io);
 
 #===============================================================================
 # Object creation and setup methods
 #===============================================================================
-my $autoload = { 
+my $autoload = {
     qw(
         touch file
 
@@ -108,7 +112,7 @@ sub new {
     return $new->dir($name) if -d $name;
     return $new->$1($name) if $name =~ /^([a-z]{3,8}):/;
     return $new->socket($name) if $name =~ /^[\w\-\.]*:\d{1,5}$/;
-    return $new->pipe($name) 
+    return $new->pipe($name)
       if $name =~ s/^\s*\|\s*// or $name =~ s/\s*\|\s*$//;
     return $new->string if $name eq '$';
     return $new->stdio if $name eq '-';
@@ -138,8 +142,8 @@ sub handle {
 # Tie Interface
 #===============================================================================
 sub tie {
-    my $self = shift; 
-    tie *$self, $self; 
+    my $self = shift;
+    tie *$self, $self;
     return $self;
 }
 
@@ -165,7 +169,7 @@ sub DESTROY {
 }
 
 sub BINMODE {
-    my $self = shift; 
+    my $self = shift;
     binmode *$self->io_handle;
 }
 
@@ -186,14 +190,14 @@ sub BINMODE {
 #===============================================================================
 # Overloading support
 #===============================================================================
-my $old_warn_handler = $SIG{__WARN__}; 
-$SIG{__WARN__} = sub { 
+my $old_warn_handler = $SIG{__WARN__};
+$SIG{__WARN__} = sub {
     if ($_[0] !~ /^Useless use of .+ \(.+\) in void context/) {
         goto &$old_warn_handler if $old_warn_handler;
         warn(@_);
     }
 };
-    
+
 use overload '""' => 'overload_stringify';
 use overload '|' => 'overload_bitwise_or';
 use overload '<<' => 'overload_left_bitshift';
@@ -233,7 +237,7 @@ sub overload_table {
         '* < *' => 'overload_any_from_any',
         '* >> *' => 'overload_any_addto_any',
         '* << *' => 'overload_any_addfrom_any',
-     
+
         '* < scalar' => 'overload_scalar_to_any',
         '* > scalar' => 'overload_any_to_scalar',
         '* << scalar' => 'overload_scalar_addto_any',
@@ -253,13 +257,13 @@ sub get_overload_method {
         my $key = "$operator $arg1_type";
         return $table1->{$key} || $self->overload_undefined($key);
     }
-    
+
     my $arg2_type = $self->get_argument_type($arg2);
-    my @table2 = UNIVERSAL::isa($arg2, "IO::All") 
-    ? ($arg2->overload_table) 
+    my @table2 = UNIVERSAL::isa($arg2, "IO::All")
+    ? ($arg2->overload_table)
     : ();
     my $table = { %$table1, @table2 };
-     
+
     my @keys = (
         "$arg1_type $operator $arg2_type",
         "* $operator $arg2_type",
@@ -268,7 +272,7 @@ sub get_overload_method {
       unless $arg2_type =~ /^(scalar|array|hash|code|ref)$/;
 
     for (@keys) {
-        return $table->{$_} 
+        return $table->{$_}
           if defined $table->{$_};
     }
 
@@ -414,42 +418,42 @@ proxy_open 'getc';
 #===============================================================================
 # File::Spec Interface
 #===============================================================================
-sub canonpath {my $self = shift; File::Spec->canonpath($self->pathname) } 
+sub canonpath {my $self = shift; File::Spec->canonpath($self->pathname) }
 sub catdir {
     my $self = shift;
     my @args = grep defined, $self->name, @_;
     $self->constructor->()->dir(File::Spec->catdir(@args));
-} 
+}
 sub catfile {
     my $self = shift;
     my @args = grep defined, $self->name, @_;
     $self->constructor->()->file(File::Spec->catfile(@args));
-} 
-sub join {my $self = shift; $self->catfile(@_) } 
+}
+sub join {my $self = shift; $self->catfile(@_) }
 sub curdir {
     my $self = shift;
     $self->constructor->()->dir(File::Spec->curdir);
-} 
+}
 sub devnull {
     my $self = shift;
     $self->constructor->()->file(File::Spec->devnull);
-} 
+}
 sub rootdir {
     my $self = shift;
     $self->constructor->()->dir(File::Spec->rootdir);
-} 
+}
 sub tmpdir {
     my $self = shift;
     $self->constructor->()->dir(File::Spec->tmpdir);
-} 
+}
 sub updir {
     my $self = shift;
     $self->constructor->()->dir(File::Spec->updir);
-} 
+}
 sub case_tolerant {
     my $self = shift;
     File::Spec->case_tolerant;
-} 
+}
 sub is_absolute {
     my $self = shift;
     File::Spec->file_name_is_absolute($self->pathname);
@@ -457,23 +461,23 @@ sub is_absolute {
 sub path {
     my $self = shift;
     map { $self->constructor->()->dir($_) } File::Spec->path;
-} 
+}
 sub splitpath {
     my $self = shift;
     File::Spec->splitpath($self->pathname);
-} 
+}
 sub splitdir {
     my $self = shift;
     File::Spec->splitdir($self->pathname);
-} 
+}
 sub catpath {
     my $self = shift;
     $self->constructor->(File::Spec->catpath(@_));
-} 
+}
 sub abs2rel {
     my $self = shift;
     File::Spec->abs2rel($self->pathname, @_);
-} 
+}
 sub rel2abs {
     my $self = shift;
     File::Spec->rel2abs($self->pathname, @_);
@@ -482,6 +486,14 @@ sub rel2abs {
 #===============================================================================
 # Public IO Action Methods
 #===============================================================================
+sub absolute {
+    my $self = shift;
+    $self->pathname(File::Spec->rel2abs($self->pathname))
+      unless $self->is_absolute;
+    $self->is_absolute(1);
+    return $self;
+}
+
 sub all {
     my $self = shift;
     $self->assert_open('<');
@@ -653,8 +665,8 @@ sub read {
     my $length = (@_ or $self->type eq 'dir')
     ? $self->io_handle->read(@_)
     : $self->io_handle->read(
-        ${$self->buffer}, 
-        $self->block_size, 
+        ${$self->buffer},
+        $self->block_size,
         $self->length,
     );
     $self->error_check;
@@ -680,7 +692,7 @@ sub slurp {
     if ($self->_chomp) {
         local $/ = $separator;
         map {chomp; $_} split /(?<=\Q$separator\E)/, $slurp;
-    }   
+    }
     else {
         split /(?<=\Q$separator\E)/, $slurp;
     }
@@ -748,7 +760,7 @@ sub assert_dirpath {
           require File::Path;
           File::Path::mkpath($dir_name);
       } or
-      $self->throw("Can't make $dir_name"); 
+      $self->throw("Can't make $dir_name");
 }
 
 sub assert_open {
@@ -793,18 +805,21 @@ sub set_binmode {
 #===============================================================================
 # Stat Methods
 #===============================================================================
-sub device    {my $self = shift; my $x = (stat($self->io_handle || $self->pathname))[0] }
-sub inode     {my $self = shift; my $x = (stat($self->io_handle || $self->pathname))[1] }
-sub modes     {my $self = shift; my $x = (stat($self->io_handle || $self->pathname))[2] }
-sub nlink     {my $self = shift; my $x = (stat($self->io_handle || $self->pathname))[3] }
-sub uid       {my $self = shift; my $x = (stat($self->io_handle || $self->pathname))[4] }
-sub gid       {my $self = shift; my $x = (stat($self->io_handle || $self->pathname))[5] }
-sub device_id {my $self = shift; my $x = (stat($self->io_handle || $self->pathname))[6] }
-sub size      {my $self = shift; my $x = (stat($self->io_handle || $self->pathname))[7] }
-sub atime     {my $self = shift; my $x = (stat($self->io_handle || $self->pathname))[8] }
-sub mtime     {my $self = shift; my $x = (stat($self->io_handle || $self->pathname))[9] }
-sub ctime     {my $self = shift; my $x = (stat($self->io_handle || $self->pathname))[10] }
-sub blksize   {my $self = shift; my $x = (stat($self->io_handle || $self->pathname))[11] }
-sub blocks    {my $self = shift; my $x = (stat($self->io_handle || $self->pathname))[12] }
+BEGIN {
+    no strict 'refs';
+    my @stat_fields = qw(
+        device inode modes nlink uid gid device_id size atime mtime
+        ctime blksize blocks
+    );
+    foreach my $stat_field_idx (0 .. $#stat_fields)
+    {
+        my $idx = $stat_field_idx;
+        my $name = $stat_fields[$idx];
 
-1;
+        *$name = sub {
+            my $self = shift;
+            return (stat($self->io_handle || $self->pathname))[$idx];
+        };
+    }
+}
+

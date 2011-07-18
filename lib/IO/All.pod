@@ -87,7 +87,7 @@ IO::All - IO::All of it to Graham and Damian!
     "Thank you!" > $connection;                 # Thank the caller
     $connection->close;                         # Hang up
     io(':6666')->accept->slurp > io->devnull;   # Take a complaint and file it
-    
+
     # DBM database operations:
     $dbm = io 'my/database';                    # Create a database object
     print $dbm->{grocery_list};                 # Hash context makes it a DBM
@@ -102,7 +102,7 @@ IO::All - IO::All of it to Graham and Damian!
     @$io = reverse @$io;                        # Reverse lines in a file
 
     # Stat functions:
-    printf "%s %s %s\n",                        # Print name, uid and size of 
+    printf "%s %s %s\n",                        # Print name, uid and size of
       $_->name, $_->uid, $_->size               # contents of current directory
         for io('.')->all;
     print "$_\n" for sort                       # Use mtime method to sort all
@@ -111,10 +111,10 @@ IO::All - IO::All of it to Graham and Damian!
 
     # File::Spec support:
     $contents < io->catfile(qw(dir file.txt));  # Portable IO operation
-    
+
     # Miscellaneous:
     @lines = io('file.txt')->chomp->slurp;      # Chomp as you slurp
-    @chunks = 
+    @chunks =
       io('file.txt')->separator('xxx')->slurp;  # Use alternnate record sep
     $binary = io('file.bin')->binary->all;      # Read a binary file
     io('a-symlink')->readlink->slurp;           # Readlink returns an object
@@ -141,9 +141,9 @@ IO::String, Tie::File, File::Spec, File::Path and File::ReadBackwards;
 as well as all the DBM and MLDBM modules. You can use most of the
 methods found in these classes and in IO::Handle (which they inherit
 from). IO::All adds dozens of other helpful idiomatic methods
-including file stat and manipulation functions. 
+including file stat and manipulation functions.
 
-IO::All is pluggable, and modules like IO::All::LWP and IO::All::Mailto
+IO::All is pluggable, and modules like L<IO::All::LWP> and L<IO::All::Mailto>
 add even more functionality. Optionally, every IO::All object can be
 tied to itself. This means that you can use most perl IO builtins on it:
 readline, <>, getc, print, printf, syswrite, sysread, close.
@@ -161,7 +161,7 @@ by the usage context. That means you can replace this:
 
 with this:
 
-    my $stuff < io"./mystuff";
+    my $stuff < io "./mystuff";
 
 And that is a B<good thing>!
 
@@ -233,9 +233,9 @@ a huge matrix of possibilities for magic. That's because the overloading
 is sensitive to the types, position and context of the arguments, and an
 IO::All object can be one of many types.
 
-The most important overload to grok is stringification. IO::All objects
-stringify to their file or directory name. Here we print the contents of
-the current directory:
+The most important overload to become familiar with is stringification.
+IO::All objects stringify to their file or directory name. Here we print the
+contents of the current directory:
 
     perl -MIO::All -le 'print for io(".")->all'
 
@@ -262,7 +262,7 @@ appended to.
 
 An IO::All file used as an array reference becomes tied using Tie::File:
 
-    $file = io"file";
+    $file = io "file";
     # Print last line of file
     print $file->[-1];
     # Insert new line in middle of file
@@ -332,7 +332,7 @@ lock. If all goes well the child will print 3 lines.
 This simple example will read lines from a file forever. When the last
 line is read, it will reopen the file and read the first one again.
 
-    my $io = io'file1.txt';
+    my $io = io 'file1.txt';
     $io->autoclose(1);
     while (my $line = $io->getline || $io->getline) {
         print $line;
@@ -358,9 +358,9 @@ or more simply:
 The C<backwards> method returns the IO::All object so that you can
 chain the calls.
 
-NOTE: This operation requires that you have the File::ReadBackwards 
+NOTE: This operation requires that you have the L<File::ReadBackwards>
 module installed.
-    
+
 =head2 Client/Server Sockets
 
 IO::All makes it really easy to write a forking socket server and a
@@ -402,7 +402,7 @@ dynamic pages:
 
 There is are a lot of subtle things going on here. First we accept a socket
 and fork the server. Then we overload the new socket as a code ref. This code
-ref takes one argument, another code ref, which is used as a callback. 
+ref takes one argument, another code ref, which is used as a callback.
 
 The callback is called once for every line read on the socket. The line
 is put into C<$_> and the socket itself is passed in to the callback.
@@ -414,14 +414,14 @@ we create a piped command as our IO::All object. This somewhat approximates
 CGI support.
 
 Whatever the resulting object is, we direct the contents back at our socket
-which is in C<$_[0]>. Pretty simple, eh? 
+which is in C<$_[0]>. Pretty simple, eh?
 
 =head2 DBM Files
 
 IO::All file objects used as a hash reference, treat the file as a DBM tied to
 a hash. Here I write my DB record to STDERR:
 
-    io("names.db")->{ingy} > io'=';
+    io("names.db")->{ingy} > io('=');
 
 Since their are several DBM formats available in Perl, IO::All picks the first
 one of these that is installed on your system:
@@ -452,7 +452,7 @@ then pass control to the real C<open>.
 First the code using the module:
 
     use IO::Dumper;
-    
+
     io('./mydump')->dump($hash);
 
 And next the IO::Dumper module itself:
@@ -460,12 +460,12 @@ And next the IO::Dumper module itself:
     package IO::Dumper;
     use IO::All -base;
     use Data::Dumper;
-    
+
     sub dump {
         my $self = shift;
         Dumper(@_) > $self;
     }
-    
+
     1;
 
 =head2 Inline Subclassing
@@ -477,11 +477,11 @@ method manually.
 
     IO::Dumper->import;
     io('./mydump')->dump($hash);
-    
+
     package IO::Dumper;
     use IO::All -base;
     use Data::Dumper;
-    
+
     sub dump {
         my $self = shift;
         Dumper(@_) > $self;
@@ -509,7 +509,7 @@ attributes are copied from the instance object.
     io(file-descriptor);
     IO::All->new(file-descriptor);
     $io->new(file-descriptor);
-            
+
 All three forms take a single argument, a file descriptor. A file
 descriptor can be any of the following:
 
@@ -536,7 +536,7 @@ for I/O:
 
 =item * file
 
-    io->file(file-name);
+    io->file("path/to/my/file.txt");
 
 Using the C<file> method sets the type of the object to I<file> and sets
 the pathname of the file if provided.
@@ -551,25 +551,25 @@ work the same:
 
 =item * dir
 
-    io->file(dir-name);
+    io->file($dir_name);
 
 Make the object be of type I<directory>.
 
 =item * socket
 
-    io->file(domain:port);
+    io->socket("${domain}:${port}");
 
 Make the object be of type I<socket>.
 
 =item * link
 
-    io->file(link-name);
+    io->link($link_name);
 
 Make the object be of type I<link>.
 
 =item * pipe
 
-    io->file(link-name);
+    io->pipe($pipe_command);
 
 Make the object be of type I<pipe>. The following two statements are
 equivalent:
@@ -600,12 +600,12 @@ serialization module. The first DBM module that is available is used to
 process the MLDBM file. The serialization module can be Data::Dumper,
 Storable or FreezeThaw.
 
-    io('mymldbm')->mldbm('GDBM_File', 'Storable')->{author} = 
+    io('mymldbm')->mldbm('GDBM_File', 'Storable')->{author} =
       {nickname => 'ingy'};
 
 =item * string
 
-Make the object be a IO::String object. These are equivalent:
+Make the object be an IO::String object. These are equivalent:
 
     my $io = io('$');
     my $io = io->string;
@@ -637,7 +637,7 @@ Make the object represent STDERR.
 
 =item * handle
 
-    io->handle(io-handle);
+    io->handle($io_handle);
 
 Forces the object to be created from an pre-existing IO handle. You can
 chain calls together to indicate the type of handle:
@@ -647,19 +647,19 @@ chain calls together to indicate the type of handle:
 
 =item * http
 
-Make the object represent an http uri. Requires IO-All-LWP.
+Make the object represent an HTTP URI. Requires IO-All-LWP.
 
 =item * https
 
-Make the object represent an https uri. Requires IO-All-LWP.
+Make the object represent an HTTPS URI. Requires IO-All-LWP.
 
 =item * ftp
 
-Make the object represent a ftp uri. Requires IO-All-LWP.
+Make the object represent an FTP URI. Requires IO-All-LWP.
 
 =item * mailto
 
-Make the object represent a mailto uri. Requires IO-All-Mailto.
+Make the object represent a C<mailto:> URI. Requires IO-All-Mailto.
 
 =back
 
@@ -694,6 +694,13 @@ together. For example:
 =item * absolute
 
 Indicates that the C<pathname> for the object should be made absolute.
+
+    # Print the full path of the current working directory
+    # (like pwd).
+
+    use IO::All; 
+
+    print io->curdir->absolute;
 
 =item * assert
 
@@ -973,7 +980,7 @@ Read all contents into a single string.
 =item * all (For directories)
 
 Returns a list of IO::All objects for all files and subdirectories in a
-directory. 
+directory.
 
 '.' and '..' are excluded.
 
@@ -1569,7 +1576,7 @@ To keep input objects from closing at EOF, do this:
 
     $io->autoclose(0);
 
-=item * 
+=item *
 
 You can always call C<open> and C<close> explicitly, if you need that
 level of control. To test if an object is currently open, use the
