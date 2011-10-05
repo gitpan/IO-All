@@ -16,7 +16,7 @@ use strict;
 use Module::Install::Base;
 use vars qw'@ISA $VERSION';
 @ISA = 'Module::Install::Base';
-$VERSION = '0.26';
+$VERSION = '0.29';
 
 #-----------------------------------------------------------------------------#
 # XXX BOOTBUGHACK
@@ -256,6 +256,8 @@ sub guess_pm {
         (($pm) = sort @{$array[0]}) or
             die "Can't guess main module";
     }
+    my $pmc = $pm . 'c';
+    $pm = $pmc if -e $pmc;
     $self->set($pm);
 }
 $main::PM = bless [$main::PM ? ($main::PM) : ()], __PACKAGE__;
@@ -263,7 +265,8 @@ $main::PM = bless [$main::PM ? ($main::PM) : ()], __PACKAGE__;
 package Module::Package::POD;
 use overload '""' => sub {
     return $_[0]->[0] if @{$_[0]};
-    (my $pod = "$main::PM") =~ s/\.pm/.pod/ or die;
+    (my $pod = "$main::PM") =~ s/\.pm/.pod/
+        or die "Module::Package's \$main::PM value should end in '.pm'";
     return -e $pod ? $pod : '';
 };
 sub set { $_[0][0] = $_[1] }

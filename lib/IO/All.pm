@@ -13,7 +13,7 @@ use File::Spec();
 use Symbol();
 use Fcntl;
 
-our $VERSION = '0.43';
+our $VERSION = '0.44';
 our @EXPORT = qw(io);
 
 #===============================================================================
@@ -162,7 +162,7 @@ sub READLINE {
 sub DESTROY {
     my $self = shift;
     no warnings;
-    unless ( $^V and $^V lt v5.8.0 ) {
+    unless ( $] < 5.008 ) {
         untie *$self if tied *$self;
     }
     $self->close if $self->is_open;
