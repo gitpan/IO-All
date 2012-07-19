@@ -3,11 +3,12 @@ abstract: 'IO::All of it to Graham and Damian!'
 author:
   - 'Ingy döt Net <ingy@cpan.org>'
 build_requires:
-  ExtUtils::MakeMaker: 6.42
+  ExtUtils::MakeMaker: 6.59
 configure_requires:
-  ExtUtils::MakeMaker: 6.42
+  ExtUtils::MakeMaker: 6.59
 distribution_type: module
-generated_by: 'Module::Install version 1.01'
+dynamic_config: 1
+generated_by: 'Module::Install version 1.06'
 license: perl
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.4.html
@@ -16,6 +17,7 @@ module_name: IO::All
 name: IO-All
 no_index:
   directory:
+    - examples
     - inc
     - t
 recommends:
@@ -24,7 +26,10 @@ requires:
   IO::String: 1.08
   perl: 5.6.1
 resources:
-  homepage: http://github.com/ingydotnet/io-all-pm/tree
+  homepage: https://github.com/ingydotnet/io-all-pm/tree
   license: http://dev.perl.org/licenses/
-  repository: git://github.com/ingydotnet/io-all-pm.git
-version: 0.44
+  repository:
+    type: git
+    url: git://github.com/ingydotnet/io-all-pm.git
+    web: https://github.com/ingydotnet/io-all-pm/tree
+version: 0.45
