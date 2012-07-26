@@ -32,4 +32,4 @@ resources:
     type: git
     url: git://github.com/ingydotnet/io-all-pm.git
     web: https://github.com/ingydotnet/io-all-pm/tree
-version: 0.45
+version: 0.46
