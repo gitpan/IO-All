@@ -5,8 +5,7 @@ use Test::More tests => 1;
 use IO::All;
 use IO_All_Test;
 
-my $io = io('t/tie.t')->tie;
-my $file = join '', <$io>;
-test_file_contents($file, 't/tie.t');
+my @foo = sort map $_->filename, io()->dir(qw( t mydir ))->glob('f*');
+is_deeply(\@foo, [qw( file1 file2 file3 )]);
 
 del_output_dir();

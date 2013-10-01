@@ -26,10 +26,7 @@ requires:
   IO::String: 1.08
   perl: 5.6.1
 resources:
-  homepage: https://github.com/ingydotnet/io-all-pm/tree
+  homepage: git://github.com/frioux/io-all-pm
   license: http://dev.perl.org/licenses/
-  repository:
-    type: git
-    url: git://github.com/ingydotnet/io-all-pm.git
-    web: https://github.com/ingydotnet/io-all-pm/tree
-version: 0.46
+  repository: git://github.com/frioux/io-all-pm
+version: 0.47

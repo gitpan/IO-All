@@ -1,11 +1,14 @@
 package IO_All_Test;
 use File::Path;
 @EXPORT = qw(
+    del_output_dir
+    o_dir
     test_file_contents
     test_file_contents2
     test_matching_files
     read_file_lines
     flip_slash f
+    $output_dir
 );
 use strict;
 use base 'Exporter';
@@ -53,9 +56,40 @@ sub flip_slash {
     *f = \&flip_slash;
 }
 
+use vars qw($output_dir);
+
 BEGIN {
-    File::Path::rmtree('t/output');
-    File::Path::mkpath('t/output');
+    use FindBin qw($Script);
+    use File::Temp qw(tempdir);
+
+    if ($Script =~ m{([\w\-]+)\.t\z})
+    {
+        $output_dir = "t/output__$1";
+    }
+    else
+    {
+        $output_dir = tempdir('t/output__XXXXXXXX');
+    }
+}
+
+sub o_dir
+{
+    return $output_dir;
+}
+
+sub del_output_dir
+{
+    File::Path::rmtree($output_dir);
+}
+
+# TODO : this common directory that is deleted and recreated may prevent
+# running the tests in parallel.
+BEGIN {
+    if (-d $output_dir)
+    {
+        del_output_dir();
+    }
+    File::Path::mkpath($output_dir);
 }
 
 1;

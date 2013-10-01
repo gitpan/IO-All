@@ -20,4 +20,7 @@ is(io->stdin->fileno, 0);
 is(io->stdout->fileno, 1);
 is(io->stderr->fileno, 2);
 
-ok(io('t/output/xxx')->open('>')->fileno > 2);
+ok(io(o_dir() . '/xxx')->open('>')->fileno > 2);
+
+
+del_output_dir();

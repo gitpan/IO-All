@@ -16,7 +16,12 @@ field 'chdir_from';
 sub dir {
     my $self = shift;
     bless $self, __PACKAGE__;
-    $self->name(shift) if @_;
+    $self->name(
+        $self->_spec_class->catdir(
+            ($self->pathname ? ($self->pathname) : () ),
+            @_,
+        )
+    ) if @_;
     return $self->_init;
 }
 
@@ -139,6 +144,12 @@ sub mkpath {
     return $self;
 }
 
+sub file {
+    my ($self, @rest) = @_;
+
+    return $self->constructor->()->file($self->pathname, @rest)
+}
+
 sub next {
     my $self = shift;
     $self->assert_open;
@@ -179,6 +190,16 @@ sub rmtree {
     my $self = shift;
     require File::Path;
     File::Path::rmtree($self->pathname, @_);
+}
+
+sub glob {
+   my ($self, @rest) = @_;
+
+   map {;
+      my $ret = $self->constructor->($_);
+      $ret->absolute if $self->is_absolute;
+      $ret
+   } glob $self->_spec_class->catdir( $self->pathname, @rest );
 }
 
 sub DESTROY {

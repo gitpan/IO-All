@@ -1,11 +1,13 @@
 use lib 't', 'lib';
 use strict;
 use warnings;
-use Test::More tests => 27;
+use Test::More tests => 31;
 use IO::All;
 use IO_All_Test;
 
 is(io('././t/file_spec.t')->canonpath, f 't/file_spec.t');
+is(io('././t/file_spec.t')->ext, 't');
+is(io('././t/file_spec.t')->extension, 't');
 is(io('././t/bogus')->canonpath, f 't/bogus');
 is(join(';', grep {! /CVS|\.svn/} io->catdir(qw(t mydir))->all), f 't/mydir/dir1;t/mydir/dir2;t/mydir/file1;t/mydir/file2;t/mydir/file3');
 test_file_contents(io->catfile(qw(t mystuff))->scalar, 't/mystuff');
@@ -43,3 +45,8 @@ is("".io->catdir('goo', 'hoo'), f 'goo/hoo');
 is("".io->file('doo/foo')->catfile('goo', 'hoo'), f 'doo/foo/goo/hoo');
 is("".io->file->catfile('goo', 'hoo'), f 'goo/hoo');
 is("".io->catfile('goo', 'hoo'), f 'goo/hoo');
+
+is("".io->file('goo', 'hoo', 'bar.txt'), f 'goo/hoo/bar.txt');
+is("".io->dir('goo', 'hoo'), f 'goo/hoo');
+
+del_output_dir();
