@@ -43,6 +43,8 @@ SYNOPSIS
         print "$io";                                # Object stringifies to name
         print $io;                                  # Quotes not needed here
         print $io->filename;                        # The file portion only
+        $io->os('win32');                           # change the object to be a
+                                                    # win32 path
         print $io->ext;                             # The file extension only
         print $io->mimetype;                        # The mimetype, requires
                                                     #   File::MimeType
@@ -170,7 +172,7 @@ USAGE
 
         use IO::All;
 
-    and IO::All will export a single function called "io", which contructs
+    and IO::All will export a single function called "io", which constructs
     all IO objects.
 
     You can also pass global flags like this:
@@ -205,10 +207,10 @@ METHOD ROLE CALL
     "is_pipe", "is_readable", "is_socket", "is_stdio", "is_string",
     "is_temp", "is_writable", "join", "length", "link", "lock", "mailer",
     "mailto", "mimetype", "mkdir", "mkpath", "mldbm", "mode", "modes",
-    "mtime", "name", "new", "next", "nlink", "open", "password", "path",
-    "pathname", "perms", "pipe", "port", "print", "printf", "println",
-    "put", "rdonly", "rdwr", "read", "readdir", "readlink", "recv",
-    "rel2abs", "relative", "rename", "request", "response", "rmdir",
+    "mtime", "name", "new", "next", "nlink", "open", "os" "password",
+    "path", "pathname", "perms", "pipe", "port", "print", "printf",
+    "println", "put", "rdonly", "rdwr", "read", "readdir", "readlink",
+    "recv", "rel2abs", "relative", "rename", "request", "response", "rmdir",
     "rmtree", "rootdir", "scalar", "seek", "send", "separator", "shutdown",
     "size", "slurp", "socket", "sort", "splitdir", "splitpath", "stat",
     "stdio", "stderr", "stdin", "stdout", "strict", "string", "string_ref",
@@ -252,7 +254,7 @@ OPERATOR OVERLOADING
         io('file3') > io('file4');
         io('file5') < io('file4');
 
-    '>>' and '<<' do the same thing except the recipent string or file is
+    '>>' and '<<' do the same thing except the recipient string or file is
     appended to.
 
     An IO::All file used as an array reference becomes tied using Tie::File:
@@ -935,7 +937,7 @@ THE IO::All METHODS
 
     *   response
 
-        Returns the resulting reponse object from an LWP transaction.
+        Returns the resulting response object from an LWP transaction.
 
     *   separator
 
@@ -1225,6 +1227,11 @@ THE IO::All METHODS
         NOTE: Normally you won't need to call open (or mode/perms), since
         this happens automatically for most operations.
 
+    *   os
+
+        Change the object's os representation. Valid options are: "win32",
+        "unix", "vms", "mac", "os2".
+
     *   pathname
 
         Return the absolute or relative pathname for a file or directory,
@@ -1406,7 +1413,7 @@ THE IO::All METHODS
 
   Stat Methods
     This methods get individual values from a stat call on the file,
-    directory or handle represented by th IO::All object.
+    directory or handle represented by the IO::All object.
 
     *   atime
 

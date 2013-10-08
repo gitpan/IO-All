@@ -2,31 +2,21 @@
 abstract: 'IO::All of it to Graham and Damian!'
 author:
   - 'Ingy döt Net <ingy@cpan.org>'
-build_requires:
-  ExtUtils::MakeMaker: 6.59
+build_requires: {}
 configure_requires:
-  ExtUtils::MakeMaker: 6.59
-distribution_type: module
-dynamic_config: 1
-generated_by: 'Module::Install version 1.06'
+  ExtUtils::MakeMaker: 6.30
+dynamic_config: 0
+generated_by: 'Dist::Zilla version 4.300039, CPAN::Meta::Converter version 2.120921'
 license: perl
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.4.html
   version: 1.4
-module_name: IO::All
 name: IO-All
-no_index:
-  directory:
-    - examples
-    - inc
-    - t
 recommends:
   File::ReadBackwards: 0
 requires:
   IO::String: 1.08
-  perl: 5.6.1
 resources:
-  homepage: git://github.com/frioux/io-all-pm
-  license: http://dev.perl.org/licenses/
-  repository: git://github.com/frioux/io-all-pm
-version: 0.47
+  homepage: https://github.com/ingydotnet/io-all-pm
+  repository: https://github.com/ingydotnet/io-all-pm.git
+version: 0.48
