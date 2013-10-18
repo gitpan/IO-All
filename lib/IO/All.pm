@@ -14,7 +14,7 @@ use Symbol();
 use Fcntl;
 
 # ABSTRACT: IO::All of it to Graham and Damian!
-our $VERSION = '0.48'; # VERSION
+our $VERSION = '0.49'; # VERSION
 our @EXPORT = qw(io);
 
 #===============================================================================
