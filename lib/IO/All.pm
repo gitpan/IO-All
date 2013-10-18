@@ -14,7 +14,7 @@ use Symbol();
 use Fcntl;
 
 # ABSTRACT: IO::All of it to Graham and Damian!
-our $VERSION = '0.49'; # VERSION
+our $VERSION = '0.50'; # VERSION
 our @EXPORT = qw(io);
 
 #===============================================================================
@@ -625,9 +625,9 @@ sub getlines {
         }
     }
     $self->error_check;
-    return (@lines) or
-           $self->_autoclose && $self->close && () or
-           ();
+    return @lines if @lines;
+    $self->close if $self->_autoclose;
+    return ();
 }
 
 sub is_dir {my $self = shift; UNIVERSAL::isa($self, 'IO::All::Dir') }
