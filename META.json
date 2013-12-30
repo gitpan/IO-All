@@ -1,10 +1,10 @@
 {
    "abstract" : "IO::All of it to Graham and Damian!",
    "author" : [
-      "Ingy d\u00c3\u00b6t Net <ingy@cpan.org>"
+      "Ingy d\u00f6t Net <ingy@cpan.org>"
    ],
    "dynamic_config" : 0,
-   "generated_by" : "Dist::Zilla version 4.300039, CPAN::Meta::Converter version 2.120921",
+   "generated_by" : "Dist::Zilla version 5.006, CPAN::Meta::Converter version 2.132830",
    "license" : [
       "perl_5"
    ],
@@ -42,6 +42,6 @@
          "web" : "https://github.com/ingydotnet/io-all-pm"
       }
    },
-   "version" : "0.50"
+   "version" : "0.51"
 }
 
