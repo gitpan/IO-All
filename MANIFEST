@@ -30,6 +30,7 @@ method_list
 pkg/manifest.skip
 t/IO_All_Test.pm
 t/IO_Dumper.pm
+t/RT81224.t
 t/absolute.t
 t/accept.t
 t/all.t
@@ -51,6 +52,7 @@ t/file_spec.t
 t/file_subclass.t
 t/fileno.t
 t/glob.t
+t/img.jpg
 t/import_flags.t
 t/in-place.t
 t/inline_subclass.t
@@ -58,7 +60,6 @@ t/input.t
 t/link.t
 t/link2.t
 t/lock.t
-t/mimetype.t
 t/mldbm.t
 t/morestuff
 t/mydir/dir1/dira/dirx/file1

@@ -50,8 +50,8 @@ IO::All - IO::All of it to Graham and Damian!
     $io->os('win32');                           # change the object to be a
                                                 # win32 path
     print $io->ext;                             # The file extension only
-    print $io->mimetype;                        # The mimetype, requires
-                                                #   File::MimeType
+    print $io->mimetype;                        # The mimetype, requires a
+                                                #  working File::MimeType
 
 
     # Read all the files/directories in a directory:
@@ -557,7 +557,7 @@ work the same:
 
 =item * dir
 
-    io->file($dir_name);
+    io->dir($dir_name);
 
 Make the object be of type I<directory>.
 
@@ -1112,7 +1112,7 @@ Proxy for IO::Handle::fileno
 
 Return the path portion of the file path in the object. For example:
 
-    io('my/path/file.txt')->filename;
+    io('my/path/file.txt')->filepath;
 
 would return C<my/path>.
 
@@ -1225,7 +1225,7 @@ Return the length of the internal buffer.
 
 Return the mimetype of the file.
 
-Requires the L<File::MimeInfo> CPAN module.
+Requires a working installation of the L<File::MimeInfo> CPAN module.
 
 =item * mkdir
 

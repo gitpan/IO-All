@@ -46,8 +46,8 @@ SYNOPSIS
         $io->os('win32');                           # change the object to be a
                                                     # win32 path
         print $io->ext;                             # The file extension only
-        print $io->mimetype;                        # The mimetype, requires
-                                                    #   File::MimeType
+        print $io->mimetype;                        # The mimetype, requires a
+                                                    #  working File::MimeType
 
 
         # Read all the files/directories in a directory:
@@ -538,7 +538,7 @@ THE IO::All METHODS
 
     *   dir
 
-            io->file($dir_name);
+            io->dir($dir_name);
 
         Make the object be of type *directory*.
 
@@ -1086,7 +1086,7 @@ THE IO::All METHODS
 
         Return the path portion of the file path in the object. For example:
 
-            io('my/path/file.txt')->filename;
+            io('my/path/file.txt')->filepath;
 
         would return "my/path".
 
@@ -1201,7 +1201,7 @@ THE IO::All METHODS
 
         Return the mimetype of the file.
 
-        Requires the File::MimeInfo CPAN module.
+        Requires a working installation of the File::MimeInfo CPAN module.
 
     *   mkdir
 

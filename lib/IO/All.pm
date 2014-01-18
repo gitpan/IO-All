@@ -14,7 +14,7 @@ use Symbol();
 use Fcntl;
 
 # ABSTRACT: IO::All of it to Graham and Damian!
-our $VERSION = '0.52'; # VERSION
+our $VERSION = '0.53'; # VERSION
 our @EXPORT = qw(io);
 
 #===============================================================================
@@ -538,6 +538,7 @@ sub binary {
     binmode($self->io_handle)
       if $self->is_open;
     $self->_binary(1);
+    $self->encoding(0);
     return $self;
 }
 
@@ -720,7 +721,7 @@ sub utf8 {
     if ($] < 5.008) {
         die "IO::All -utf8 not supported on Perl older than 5.8";
     }
-    CORE::binmode($self->io_handle, ':utf8')
+    CORE::binmode($self->io_handle, ':encoding(UTF-8)')
       if $self->is_open;
     $self->_utf8(1);
     $self->encoding('utf8');
@@ -729,12 +730,11 @@ sub utf8 {
 
 sub encoding {
     my $self = shift;
-    my $encoding = shift
-      or die "No encoding value passed to IO::All::encoding";
+    my $encoding = shift;
     if ($] < 5.008) {
         die "IO::All -encoding not supported on Perl older than 5.8";
     }
-    CORE::binmode($self->io_handle, ":$encoding")
+    CORE::binmode($self->io_handle, ":encoding($encoding)")
       if $self->is_open;
     $self->_encoding($encoding);
     return $self;
@@ -776,7 +776,7 @@ sub assert_dirpath {
       CORE::mkdir($dir_name, $self->perms || 0755) or
       do {
           require File::Path;
-          File::Path::mkpath($dir_name);
+          File::Path::mkpath($dir_name, 0, $self->perms || 0755 );
       } or
       $self->throw("Can't make $dir_name"));
 }
