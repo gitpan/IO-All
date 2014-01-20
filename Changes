@@ -1,4 +1,10 @@
 ---
+version: 0.54
+hanges:
+- Remove mentions of unimplemented strict (Thanks Mithlandu, GH#15)
+- Allow testing on non SDBM DBM's (thanks Jerry D. Hedden)
+- Abandon RT in favor of GitHub Issues
+---
 version: 0.53
 changes:
 - Make mkdir die if it fails (thanks Martyn Pearce for RT#61697)

@@ -17,6 +17,7 @@ recommends:
 requires:
   IO::String: 1.08
 resources:
+  bugtracker: https://github.com/ingydotnet/io-all-pm/issues
   homepage: https://github.com/ingydotnet/io-all-pm
   repository: https://github.com/ingydotnet/io-all-pm.git
-version: 0.53
+version: 0.54
