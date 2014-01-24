@@ -26,10 +26,11 @@
       },
       "runtime" : {
          "recommends" : {
+            "File::MimeInfo" : "0",
             "File::ReadBackwards" : "0"
          },
          "requires" : {
-            "IO::String" : "1.08"
+            "perl" : "5.008001"
          }
       }
    },
@@ -45,6 +46,6 @@
          "web" : "https://github.com/ingydotnet/io-all-pm"
       }
    },
-   "version" : "0.54"
+   "version" : "0.55"
 }
 

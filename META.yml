@@ -13,11 +13,12 @@ meta-spec:
   version: 1.4
 name: IO-All
 recommends:
+  File::MimeInfo: 0
   File::ReadBackwards: 0
 requires:
-  IO::String: 1.08
+  perl: 5.008001
 resources:
   bugtracker: https://github.com/ingydotnet/io-all-pm/issues
   homepage: https://github.com/ingydotnet/io-all-pm
   repository: https://github.com/ingydotnet/io-all-pm.git
-version: 0.54
+version: 0.55

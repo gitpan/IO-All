@@ -2,7 +2,7 @@
 use strict;
 use warnings;
 
-
+use 5.008001;
 
 use ExtUtils::MakeMaker 6.30;
 
@@ -19,20 +19,16 @@ my %WriteMakefileArgs = (
   "EXE_FILES" => [],
   "LICENSE" => "perl",
   "NAME" => "IO::All",
-  "PREREQ_PM" => {
-    "IO::String" => "1.08"
-  },
+  "PREREQ_PM" => {},
   "TEST_REQUIRES" => {},
-  "VERSION" => "0.54",
+  "VERSION" => "0.55",
   "test" => {
     "TESTS" => "t/*.t"
   }
 );
 
 
-my %FallbackPrereqs = (
-  "IO::String" => "1.08"
-);
+my %FallbackPrereqs = ();
 
 
 unless ( eval { ExtUtils::MakeMaker->VERSION(6.63_03) } ) {

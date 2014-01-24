@@ -79,7 +79,7 @@ SYNOPSIS
         io('-') > io('-');                          # Do it again
         io('-') < io('-');                          # Same. Context sensitive.
         "Bad puppy" > io('=');                      # Message to STDERR
-        $string_file = io('$');                     # Create IO::String Object
+        $string_file = io('$');                     # Create string based filehandle
         $temp_file = io('?');                       # Create a temporary file
 
         # Socket operations:
@@ -139,7 +139,7 @@ DESCRIPTION
     IO::All object. And that object can do it all!
 
     The IO::All object is a proxy for IO::File, IO::Dir, IO::Socket,
-    IO::String, Tie::File, File::Spec, File::Path, File::MimeInfo and
+    Tie::File, File::Spec, File::Path, File::MimeInfo and
     File::ReadBackwards; as well as all the DBM and MLDBM modules. You can
     use most of the methods found in these classes and in IO::Handle (which
     they inherit from). IO::All adds dozens of other helpful idiomatic
@@ -509,7 +509,7 @@ THE IO::All METHODS
             - A socket domain/port.  eg 'perl.com:5678'
             - '-' means STDIN or STDOUT (depending on usage)
             - '=' means STDERR
-            - '$' means an IO::String object
+            - '$' means an in memory filehandle object
             - '?' means a temporary file
             - A URI including: http, https, ftp and mailto
             - An IO::All object
@@ -592,7 +592,7 @@ THE IO::All METHODS
 
     *   string
 
-        Make the object be an IO::String object. These are equivalent:
+        Make the object be an in memory filehandle. These are equivalent:
 
             my $io = io('$');
             my $io = io->string;
@@ -939,8 +939,6 @@ THE IO::All METHODS
 
     *   string_ref
 
-        Proxy for IO::String::string_ref
-
         Returns a reference to the internal string that is acting like a
         file.
 
@@ -1174,7 +1172,7 @@ THE IO::All METHODS
     *   is_string
 
         Returns boolean telling whether or not the IO::All object represents
-        an IO::String object.
+        an in memory filehandle.
 
     *   is_temp
 
@@ -1624,8 +1622,8 @@ STABILITY
     for improper usage.
 
 SEE ALSO
-    IO::Handle, IO::File, IO::Dir, IO::Socket, IO::String, File::Spec,
-    File::Path, File::ReadBackwards, Tie::File, File::MimeInfo
+    IO::Handle, IO::File, IO::Dir, IO::Socket, File::Spec, File::Path,
+    File::ReadBackwards, Tie::File, File::MimeInfo
 
 CREDITS
     A lot of people have sent in suggestions, that have become a part of
