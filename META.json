@@ -4,7 +4,7 @@
       "Ingy d\u00f6t Net <ingy@cpan.org>"
    ],
    "dynamic_config" : 0,
-   "generated_by" : "Dist::Zilla version 5.006, CPAN::Meta::Converter version 2.132830",
+   "generated_by" : "Dist::Zilla version 5.006, CPAN::Meta::Converter version 2.120921",
    "license" : [
       "perl_5"
    ],
@@ -30,6 +30,8 @@
             "File::ReadBackwards" : "0"
          },
          "requires" : {
+            "Cwd" : "0",
+            "Scalar::Util" : "0",
             "perl" : "5.008001"
          }
       }
@@ -46,6 +48,6 @@
          "web" : "https://github.com/ingydotnet/io-all-pm"
       }
    },
-   "version" : "0.55"
+   "version" : "0.56"
 }
 

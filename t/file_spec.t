@@ -1,14 +1,16 @@
 use lib 't', 'lib';
 use strict;
 use warnings;
-use Test::More tests => 31;
+use Test::More tests => 33;
 use IO::All;
 use IO_All_Test;
 
-is(io('././t/file_spec.t')->canonpath, f 't/file_spec.t');
+my $path = f('t/file_spec.t') . q($);
+like(io('././t/file_spec.t')->canonpath, qr/$path/, 'give full canonical path for real files' );
 is(io('././t/file_spec.t')->ext, 't');
 is(io('././t/file_spec.t')->extension, 't');
-is(io('././t/bogus')->canonpath, f 't/bogus');
+$path = f('t/bogus') . q($);
+like(io('././t/bogus')->canonpath, qr/$path/, 'give full canonical path for files that could exist');
 is(join(';', grep {! /CVS|\.svn/} io->catdir(qw(t mydir))->all), f 't/mydir/dir1;t/mydir/dir2;t/mydir/file1;t/mydir/file2;t/mydir/file3');
 test_file_contents(io->catfile(qw(t mystuff))->scalar, 't/mystuff');
 test_file_contents(io->join(qw(t mystuff))->scalar, 't/mystuff');
@@ -53,4 +55,6 @@ is("".io->catfile('goo', 'hoo'), f 'goo/hoo');
 is("".io->file('goo', 'hoo', 'bar.txt'), f 'goo/hoo/bar.txt');
 is("".io->dir('goo', 'hoo'), f 'goo/hoo');
 
+is("".io->dir('goo', 'hoo')->dir('boo', 'foo'), f 'goo/hoo/boo/foo');
+is("".io->dir('goo', 'hoo')->dir('boo'), f 'goo/hoo/boo');
 del_output_dir();
