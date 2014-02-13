@@ -15,7 +15,7 @@ use Fcntl;
 use Cwd ();
 
 # ABSTRACT: IO::All of it to Graham and Damian!
-our $VERSION = '0.56'; # VERSION
+our $VERSION = '0.57'; # VERSION
 our @EXPORT = qw(io);
 
 #===============================================================================
@@ -140,55 +140,6 @@ sub handle {
     my $self = shift;
     $self->_handle(shift) if @_;
     return $self->_init;
-}
-
-#===============================================================================
-# Tie Interface
-#===============================================================================
-sub tie {
-    my $self = shift;
-    tie *$self, $self;
-    return $self;
-}
-
-sub TIEHANDLE {
-    return $_[0] if ref $_[0];
-    my $class = shift;
-    my $self = bless Symbol::gensym(), $class;
-    $self->init(@_);
-}
-
-sub READLINE {
-    goto &getlines if wantarray;
-    goto &getline;
-}
-
-sub DESTROY {
-    my $self = shift;
-    no warnings;
-    unless ( $] < 5.008 ) {
-        untie *$self if tied *$self;
-    }
-    $self->close if $self->is_open;
-}
-
-sub BINMODE {
-    my $self = shift;
-    binmode *$self->io_handle;
-}
-
-{
-    no warnings;
-    *GETC   = \&getc;
-    *PRINT  = \&print;
-    *PRINTF = \&printf;
-    *READ   = \&read;
-    *WRITE  = \&write;
-    *SEEK   = \&seek;
-    *TELL   = \&getpos;
-    *EOF    = \&eof;
-    *CLOSE  = \&close;
-    *FILENO = \&fileno;
 }
 
 #===============================================================================
@@ -432,6 +383,55 @@ proxy_open sysread => O_RDONLY;
 proxy_open syswrite => O_CREAT | O_WRONLY;
 proxy_open seek => $^O eq 'MSWin32' ? '<' : '+<';
 proxy_open 'getc';
+
+#===============================================================================
+# Tie Interface
+#===============================================================================
+sub tie {
+    my $self = shift;
+    tie *$self, $self;
+    return $self;
+}
+
+sub TIEHANDLE {
+    return $_[0] if ref $_[0];
+    my $class = shift;
+    my $self = bless Symbol::gensym(), $class;
+    $self->init(@_);
+}
+
+sub READLINE {
+    goto &getlines if wantarray;
+    goto &getline;
+}
+
+sub DESTROY {
+    my $self = shift;
+    no warnings;
+    unless ( $] < 5.008 ) {
+        untie *$self if tied *$self;
+    }
+    $self->close if $self->is_open;
+}
+
+sub BINMODE {
+    my $self = shift;
+    binmode *$self->io_handle;
+}
+
+{
+    no warnings;
+    *GETC   = \&getc;
+    *PRINT  = \&print;
+    *PRINTF = \&printf;
+    *READ   = \&read;
+    *WRITE  = \&write;
+    *SEEK   = \&seek;
+    *TELL   = \&getpos;
+    *EOF    = \&eof;
+    *CLOSE  = \&close;
+    *FILENO = \&fileno;
+}
 
 #===============================================================================
 # File::Spec Interface
