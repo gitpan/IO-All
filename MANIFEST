@@ -41,6 +41,7 @@ t/assert.t
 t/assert2.t
 t/autotie.t
 t/backwards.t
+t/binary_utf8.t
 t/chdir.t
 t/chomp.t
 t/construct.t

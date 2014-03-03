@@ -1,4 +1,5 @@
 package IO::All::STDIO;
+$IO::All::STDIO::VERSION = '0.58';
 use strict;
 use warnings;
 use IO::All -base;

@@ -1,4 +1,5 @@
 package IO::All;
+$IO::All::VERSION = '0.58';
 use 5.006001;
 use strict;
 use warnings;
@@ -15,7 +16,7 @@ use Fcntl;
 use Cwd ();
 
 # ABSTRACT: IO::All of it to Graham and Damian!
-our $VERSION = '0.57'; # VERSION
+
 our @EXPORT = qw(io);
 
 #===============================================================================
@@ -437,7 +438,7 @@ sub BINMODE {
 # File::Spec Interface
 #===============================================================================
 sub canonpath {my $self = shift;
-   Cwd::abs_path($self->pathname) ||
+   eval { Cwd::abs_path($self->pathname); 0 } ||
       File::Spec->canonpath($self->pathname)
 }
 
@@ -740,7 +741,7 @@ sub encoding {
         die "IO::All -encoding not supported on Perl older than 5.8";
     }
     CORE::binmode($self->io_handle, ":encoding($encoding)")
-      if $self->is_open;
+      if $self->is_open and $encoding;
     $self->_encoding($encoding);
     return $self;
 }
@@ -813,15 +814,10 @@ sub copy {
 
 sub set_binmode {
     my $self = shift;
-    if (my $encoding = $self->_encoding) {
-        CORE::binmode($self->io_handle, ":encoding($encoding)");
-    }
-    elsif ($self->_binary) {
-        CORE::binmode($self->io_handle);
-    }
-    elsif ($self->_binmode) {
-        CORE::binmode($self->io_handle, $self->_binmode);
-    }
+    my $encoding = $self->_encoding;
+    CORE::binmode($self->io_handle, ":encoding($encoding)") if $encoding;
+    CORE::binmode($self->io_handle) if $self->_binary;
+    CORE::binmode($self->io_handle, $self->_binmode) if $self->_binmode;
     return $self;
 }
 

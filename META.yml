@@ -4,23 +4,23 @@ author:
   - 'Ingy döt Net <ingy@cpan.org>'
 build_requires: {}
 configure_requires:
-  ExtUtils::MakeMaker: 6.30
+  ExtUtils::MakeMaker: '6.30'
 dynamic_config: 0
-generated_by: 'Dist::Zilla version 5.013, CPAN::Meta::Converter version 2.132830'
+generated_by: 'Dist::Zilla version 5.013, CPAN::Meta::Converter version 2.133380'
 license: perl
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.4.html
-  version: 1.4
+  version: '1.4'
 name: IO-All
 recommends:
-  File::MimeInfo: 0
-  File::ReadBackwards: 0
+  File::MimeInfo: '0'
+  File::ReadBackwards: '0'
 requires:
-  Cwd: 0
-  Scalar::Util: 0
-  perl: 5.008001
+  Cwd: '0'
+  Scalar::Util: '0'
+  perl: '5.008001'
 resources:
   bugtracker: https://github.com/ingydotnet/io-all-pm/issues
   homepage: https://github.com/ingydotnet/io-all-pm
   repository: https://github.com/ingydotnet/io-all-pm.git
-version: 0.57
+version: '0.58'
