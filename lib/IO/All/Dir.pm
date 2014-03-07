@@ -1,5 +1,5 @@
 package IO::All::Dir;
-$IO::All::Dir::VERSION = '0.58';
+$IO::All::Dir::VERSION = '0.59';
 use strict;
 use warnings;
 use Scalar::Util 'blessed';
@@ -263,9 +263,9 @@ Ingy döt Net <ingy@cpan.org>
 
 =head1 COPYRIGHT
 
-Copyright (c) 2004. Brian Ingerson.
+Copyright (c) 2004-2005. Brian Ingerson.
 
-Copyright (c) 2006, 2008. Ingy döt Net.
+Copyright (c) 2006-2014. Ingy döt Net.
 
 This program is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.
