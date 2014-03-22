@@ -1,5 +1,5 @@
 package IO::All::Temp;
-$IO::All::Temp::VERSION = '0.59';
+$IO::All::Temp::VERSION = '0.60';
 use strict;
 use warnings;
 use IO::All::File -base;

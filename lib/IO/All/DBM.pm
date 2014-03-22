@@ -1,5 +1,5 @@
 package IO::All::DBM;
-$IO::All::DBM::VERSION = '0.59';
+$IO::All::DBM::VERSION = '0.60';
 use strict;
 use warnings;
 use IO::All::File -base;
@@ -77,7 +77,7 @@ sub tie_dbm {
         @{$self->_dbm_extra}
       or $self->throw("Can't open '$filename' as DBM file:\n$!");
     $self->add_utf8_dbm_filter($db)
-      if $self->_utf8;
+      if $self->_has_utf8;
     $self->tied_file($hash);
 }
 

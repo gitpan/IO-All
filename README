@@ -767,8 +767,8 @@ THE IO::All METHODS
 
     *   binary
 
-        Indicates the file has binary content and should be opened with
-        "binmode".
+        Adds ":raw" to the list of PerlIO layers applied after "open", and
+        applies it immediately on an open handle.
 
     *   chdir
 
@@ -830,8 +830,8 @@ THE IO::All METHODS
 
     *   utf8
 
-        Indicates that IO should be done using utf8 encoding. Calls binmode
-        with ":utf8" layer.
+        Adds ":encoding(UTF-8)" to the list of PerlIO layers applied after
+        "open", and applies it immediately on an open handle.
 
   Configuration Methods
     The following methods don't do any actual I/O, but they set specific
@@ -848,8 +848,9 @@ THE IO::All METHODS
 
     *   binmode
 
-        Proxy for binmode. Requires a layer to be passed. Use "binary" for
-        plain binary mode.
+        Adds the specified layer to the list of PerlIO layers applied after
+        "open", and applies it immediately on an open handle. Does a bare
+        "binmode" when called without argument.
 
     *   block_size
 
@@ -886,7 +887,9 @@ THE IO::All METHODS
 
     *   encoding
 
-        Set the encoding to be used for the PerlIO layer.
+        Adds the specified encoding to the list of PerlIO layers applied
+        after "open", and applies it immediately on an open handle. Requires
+        an argument.
 
     *   errors
 
