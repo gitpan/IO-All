@@ -1,5 +1,5 @@
 package IO::All::File;
-$IO::All::File::VERSION = '0.60';
+$IO::All::File::VERSION = '0.61';
 use strict;
 use warnings;
 use IO::All::Filesys -base;
@@ -173,9 +173,17 @@ sub head {
     my $lines = shift || 10;
     my @return;
     $self->close;
+
+    LINES:
     while ($lines--) {
-        push @return, ($self->getline or last);
+        if (defined (my $l = $self->getline)) {
+            push @return, $l;
+        }
+        else {
+            last LINES;
+        }
     }
+
     $self->close;
     return wantarray ? @return : join '', @return;
 }

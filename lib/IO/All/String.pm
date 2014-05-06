@@ -1,5 +1,5 @@
 package IO::All::String;
-$IO::All::String::VERSION = '0.60';
+$IO::All::String::VERSION = '0.61';
 use strict;
 use warnings;
 use IO::All -base;
