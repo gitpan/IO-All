@@ -1,10 +1,12 @@
-use lib 't', 'lib';
 use strict;
 use warnings;
+use File::Basename;
+use lib dirname(__FILE__);
 use Test::More tests => 9;
 use IO::All;
 
-my $io = io('t/mystuff');
+my $testdir = dirname(__FILE__);
+my $io = io("$testdir/mystuff");
 my $x = 0;
 while (my $line = $io->getline || $io->getline) {
     my $expected = <DATA>;

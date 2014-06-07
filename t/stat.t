@@ -1,14 +1,16 @@
-use lib 't', 'lib';
 use strict;
 use warnings;
+use File::Basename;
+use lib dirname(__FILE__);
 use Test::More tests => 14;
 use IO::All;
 use IO_All_Test;
 
+my $testdir = dirname(__FILE__);
 my ($dev, $ino, $modes, $nlink, $uid, $gid, $rdev,
-    $size, $atime, $mtime, $ctime, $blksize, $blocks) = stat('t/stat.t');
+    $size, $atime, $mtime, $ctime, $blksize, $blocks) = stat("$testdir/stat.t");
 
-my $io = io('t/stat.t');
+my $io = io("$testdir/stat.t");
 is($io->device, $dev);
 is($io->inode, $ino);
 is($io->modes, $modes);

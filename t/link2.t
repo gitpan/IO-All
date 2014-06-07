@@ -1,6 +1,7 @@
-use lib 't', 'lib';
 use strict;
 use warnings;
+use File::Basename;
+use lib dirname(__FILE__);
 use Test::More;
 use IO::All;
 use IO_All_Test;
@@ -8,8 +9,9 @@ use Cwd qw(abs_path);
 
 my $linkname = o_dir() . '/mylink';
 
+my $testdir = dirname(__FILE__);
 my $cwd = abs_path('.');
-eval { symlink("t/mydir", $linkname) or die $! };
+eval { symlink("$testdir/mydir", $linkname) or die $! };
 
 if ($@ or not -l $linkname) {
     plan skip_all => 'Cannot call symlink on this platform';

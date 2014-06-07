@@ -1,11 +1,12 @@
-use lib 't', 'lib';
 use strict;
 use warnings;
+use File::Basename;
+use lib dirname(__FILE__);
 use Test::More tests => 4;
 use IO::All;
 use IO_All_Test;
 
-my $filename = f 't/mydir/file1';
+my $filename = f dirname(__FILE__) . '/mydir/file1';
 
 my $file = io($filename);
 ok($file->isa('IO::All::File'), 'string passed to io() is returned as a file');

@@ -1,6 +1,7 @@
-use lib 't'; #, 'lib';
 use strict;
 use warnings;
+use File::Basename;
+use lib dirname(__FILE__);
 use Test::More tests => 24;
 use IO_All_Test;
 use IO::All;
@@ -9,20 +10,21 @@ unlink(o_dir() . '/overload1');
 unlink(o_dir() . '/overload2');
 unlink(o_dir() . '/overload3');
 
-my $data < io('t/mystuff');
-test_file_contents($data, 't/mystuff');
+my $testdir = dirname(__FILE__);
+my $data < io("$testdir/mystuff");
+test_file_contents($data, "$testdir/mystuff");
 my $data1 = $data;
 my $data2 = $data . $data;
-$data << io('t/mystuff');
+$data << io("$testdir/mystuff");
 is($data, $data2);
-$data < io('t/mystuff');
+$data < io("$testdir/mystuff");
 is($data, $data1);
 
-io('t/mystuff') > $data;
-test_file_contents($data, 't/mystuff');
-io('t/mystuff') >> $data;
+io("$testdir/mystuff") > $data;
+test_file_contents($data, "$testdir/mystuff");
+io("$testdir/mystuff") >> $data;
 is($data, $data2);
-io('t/mystuff') > $data;
+io("$testdir/mystuff") > $data;
 is($data, $data1);
 
 $data > io(o_dir() . '/overload1');
@@ -52,29 +54,29 @@ test_file_contents($data2, o_dir() . '/overload3');
 
 is(io('foo') . '', 'foo');
 
-is("@{io 't/mydir'}",
+is("@{io $testdir . '/mydir'}",
    flip_slash
-     't/mydir/dir1 t/mydir/dir2 t/mydir/file1 t/mydir/file2 t/mydir/file3',
+     "$testdir/mydir/dir1 $testdir/mydir/dir2 $testdir/mydir/file1 $testdir/mydir/file2 $testdir/mydir/file3",
 );
 
-is(join(' ', sort keys %{io 't/mydir'}),
+is(join(' ', sort keys %{io "$testdir/mydir"}),
    'dir1 dir2 file1 file2 file3',
 );
 
-is(join(' ', sort map {"$_"} values %{io 't/mydir'}),
+is(join(' ', sort map {"$_"} values %{io "$testdir/mydir"}),
    flip_slash
-     't/mydir/dir1 t/mydir/dir2 t/mydir/file1 t/mydir/file2 t/mydir/file3',
+     "$testdir/mydir/dir1 $testdir/mydir/dir2 $testdir/mydir/file1 $testdir/mydir/file2 $testdir/mydir/file3",
 );
 
-${io('t/mystuff')} . ${io('t/mystuff')} > io(o_dir() . '/overload1');
+${io("$testdir/mystuff")} . ${io("$testdir/mystuff")} > io(o_dir() . '/overload1');
 test_file_contents2(o_dir() . '/overload1', $data2);
 
-${io('t/mystuff')} . "xxx\n" . ${io('t/mystuff')} > io(o_dir() . '/overload1');
-$data < io('t/mystuff');
+${io("$testdir/mystuff")} . "xxx\n" . ${io("$testdir/mystuff")} > io(o_dir() . '/overload1');
+$data < io("$testdir/mystuff");
 my $cat3 = $data . "xxx\n" . $data;
 test_file_contents2(o_dir() . '/overload1', $cat3);
 
-is "" . ${io("t")}, "t", "scalar overload of directory (for mst)";
+is "" . ${io($testdir)}, $testdir, "scalar overload of directory (for mst)";
 
 
 del_output_dir();

@@ -1,12 +1,14 @@
-use lib 't', 'lib';
 use strict;
 use warnings;
+use File::Basename;
+use lib dirname(__FILE__);
 use Test::More tests => 10;
 use IO::All;
 use IO_All_Test;
 
+my $testdir = dirname(__FILE__);
 # Print name and first line of all files in a directory
-my $dir = io('t/mydir');
+my $dir = io("$testdir/mydir");
 ok($dir->is_dir);
 my @results;
 while (my $io = $dir->next) {
@@ -16,13 +18,20 @@ while (my $io = $dir->next) {
 }
 
 for my $line (sort @results) {
-    is($line, flip_slash scalar <DATA>);
+    my $dataline = <DATA>;
+    $dataline =~ s/^t\//test\// if -e 'test';
+    is($line, flip_slash $dataline);
 }
 
 # Print name of all files recursively
-is("$_\n", flip_slash scalar <DATA>)
-  for sort {$a->name cmp $b->name}
-    grep {! /CVS|\.svn/} io('t/mydir')->all_files(0);
+for (
+    sort {$a->name cmp $b->name}
+    grep {! /CVS|\.svn/} io("$testdir/mydir")->all_files(0)
+) {
+    my $dataline = <DATA>;
+    $dataline =~ s/^t\//test\// if -e 'test';
+    is("$_\n", flip_slash $dataline)
+}
 
 del_output_dir();
 

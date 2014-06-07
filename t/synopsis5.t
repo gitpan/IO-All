@@ -1,11 +1,13 @@
-use lib 't', 'lib';
 use strict;
 use warnings;
+use File::Basename;
+use lib dirname(__FILE__);
 use Test::More tests => 3;
 use IO::All;
 
+my $testdir = dirname(__FILE__);
 # Write some data to a temporary file and retrieve all the paragraphs.
-my $data = io('t/synopsis5.t')->slurp;
+my $data = io("$testdir/synopsis5.t")->slurp;
 
 my $temp = io->temp;
 ok($temp->print($data));

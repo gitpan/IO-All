@@ -1,5 +1,5 @@
 package IO::All::Link;
-$IO::All::Link::VERSION = '0.61';
+$IO::All::Link::VERSION = '0.62';
 use strict;
 use warnings;
 use IO::All::File -base;

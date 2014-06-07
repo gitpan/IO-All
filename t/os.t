@@ -1,6 +1,7 @@
-use lib 't';
 use strict;
 use warnings;
+use File::Basename;
+use lib dirname(__FILE__);
 use Test::More tests => 14;
 use IO::All;
 

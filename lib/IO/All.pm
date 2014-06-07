@@ -1,5 +1,5 @@
 package IO::All;
-$IO::All::VERSION = '0.61';
+$IO::All::VERSION = '0.62';
 use 5.006001;
 use strict;
 use warnings;
@@ -14,8 +14,6 @@ use File::Spec();
 use Symbol();
 use Fcntl;
 use Cwd ();
-
-# ABSTRACT: IO::All of it to Graham and Damian!
 
 our @EXPORT = qw(io);
 

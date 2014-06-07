@@ -1,12 +1,13 @@
-use lib 't', 'lib';
 use strict;
 use warnings;
+use File::Basename;
+use lib dirname(__FILE__);
 use File::Spec::Functions;
 use Test::More;
 use IO::All;
 use IO_All_Test;
 
-my $f = catfile('t', 'mystuff');
+my $f = catfile(dirname(__FILE__), 'mystuff');
 my @lines = read_file_lines($f);
 plan(tests => 1 + @lines + 1);
 

@@ -1,5 +1,5 @@
 package IO::All::File;
-$IO::All::File::VERSION = '0.61';
+$IO::All::File::VERSION = '0.62';
 use strict;
 use warnings;
 use IO::All::Filesys -base;
