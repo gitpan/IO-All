@@ -1,5 +1,5 @@
 package IO::All::DBM;
-$IO::All::DBM::VERSION = '0.62';
+$IO::All::DBM::VERSION = '0.63';
 use strict;
 use warnings;
 use IO::All::File -base;
@@ -89,34 +89,5 @@ sub add_utf8_dbm_filter {
     $db->filter_fetch_key(sub { utf8::decode($_) });
     $db->filter_fetch_value(sub { utf8::decode($_) });
 }
-
-=encoding utf8
-
-=head1 NAME
-
-IO::All::DBM - DBM Support for IO::All
-
-=head1 SYNOPSIS
-
-See L<IO::All>.
-
-=head1 DESCRIPTION
-
-=head1 AUTHOR
-
-Ingy döt Net <ingy@cpan.org>
-
-=head1 COPYRIGHT
-
-Copyright (c) 2004-2005. Brian Ingerson.
-
-Copyright (c) 2006-2014. Ingy döt Net.
-
-This program is free software; you can redistribute it and/or modify it
-under the same terms as Perl itself.
-
-See http://www.perl.com/perl/misc/Artistic.html
-
-=cut
 
 1;
