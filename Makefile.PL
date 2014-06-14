@@ -10,7 +10,7 @@ use ExtUtils::MakeMaker 6.30;
 
 
 my %WriteMakefileArgs = (
-  "ABSTRACT" => "IO::All of it to Graham and Damian!",
+  "ABSTRACT" => "IO::All to Larry Wall!",
   "AUTHOR" => "Ingy d\x{f6}t Net <ingy\@cpan.org>",
   "CONFIGURE_REQUIRES" => {
     "ExtUtils::MakeMaker" => "6.30"
@@ -23,7 +23,7 @@ my %WriteMakefileArgs = (
     "Cwd" => 0,
     "Scalar::Util" => 0
   },
-  "VERSION" => "0.63",
+  "VERSION" => "0.64",
   "test" => {
     "TESTS" => "t/*.t"
   }

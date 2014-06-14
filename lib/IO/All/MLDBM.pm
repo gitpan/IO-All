@@ -1,5 +1,5 @@
 package IO::All::MLDBM;
-$IO::All::MLDBM::VERSION = '0.63';
+$IO::All::MLDBM::VERSION = '0.64';
 use strict;
 use warnings;
 use IO::All::DBM -base;

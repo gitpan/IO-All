@@ -1,3 +1,7 @@
+0.64 Sat Jun 14 12:33:21 PDT 2014
+ - New badge syntax
+ - Changed the ABSTRACT
+
 0.63 Sun Jun  8 12:45:43 PDT 2014
  - Add coveralls badge
  - Finish porting pod to kwim
