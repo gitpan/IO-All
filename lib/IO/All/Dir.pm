@@ -1,5 +1,5 @@
 package IO::All::Dir;
-$IO::All::Dir::VERSION = '0.64';
+$IO::All::Dir::VERSION = '0.65';
 use strict;
 use warnings;
 use Scalar::Util 'blessed';

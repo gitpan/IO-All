@@ -1,5 +1,5 @@
 package IO::All::Base;
-$IO::All::Base::VERSION = '0.64';
+$IO::All::Base::VERSION = '0.65';
 use strict;
 use warnings;
 use Fcntl;

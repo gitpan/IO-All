@@ -1,5 +1,5 @@
 package IO::All::Pipe;
-$IO::All::Pipe::VERSION = '0.64';
+$IO::All::Pipe::VERSION = '0.65';
 use strict;
 use warnings;
 use IO::All -base;
