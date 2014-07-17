@@ -17,6 +17,7 @@ no_index:
     - inc
     - t
     - xt
+    - example
 recommends:
   File::MimeInfo: '0'
   File::ReadBackwards: '0'
@@ -28,4 +29,4 @@ resources:
   bugtracker: https://github.com/ingydotnet/io-all-pm/issues
   homepage: https://github.com/ingydotnet/io-all-pm
   repository: https://github.com/ingydotnet/io-all-pm.git
-version: '0.65'
+version: '0.66'

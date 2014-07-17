@@ -1,5 +1,5 @@
 package IO::All::DBM;
-$IO::All::DBM::VERSION = '0.65';
+
 use strict;
 use warnings;
 use IO::All::File -base;

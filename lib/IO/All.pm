@@ -1,5 +1,6 @@
 package IO::All;
-$IO::All::VERSION = '0.65';
+our $VERSION = '0.66';
+
 use 5.006001;
 use strict;
 use warnings;
