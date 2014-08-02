@@ -1,3 +1,6 @@
+0.67 Sat Aug  2 11:58:01 PDT 2014
+ - Fix Copyright years.
+
 0.66 Wed Jul 16 23:39:38 PDT 2014
  - Move doc to Swim
  - Fix Meta and add Contributing file
@@ -138,7 +141,8 @@
    http://rt.cpan.org/Public/Bug/Display.html?id=20053 Made sure Carp is
    required and the sub Carp::carp is predeclared in IO/All.pm.
 
-0.35
+0.35 Tue May  9 08:25:37 PDT 2006
+ - Remove dependency on XXX.pm *groan*
 
 0.34 Mon May  8 01:03:12 PDT 2006
  - Remove dependency on Spiffy.pm
@@ -179,12 +183,20 @@
  - Fixed buglets in sockets
  - Added Cookbook example for Tiny Web Server
 
-0.20 Mon May 24 17:02:24 PDT 2004
+0.20 Thu May 27 01:46:04 PDT 2004
+ - Rewrote documentation
+ - Refactored construction
+ - File::Spec support
+ - File::Path support
+ - lots of new methods
+
+0.19 Mon May 24 17:02:24 PDT 2004
  - DBM support
  - MLDBM support
  - chomp support
  - Fixed forking server zombie issues
  - Replaced flags with methods (-tie -fork -lock, etc)
+ - Added chainable options `assert, chomp, deep, rdonly, rdwr, sort`
  - Fixed problems with perl-5.6.1 and Solaris
 
 0.18 Sun May 16 17:40:37 PDT 2004
