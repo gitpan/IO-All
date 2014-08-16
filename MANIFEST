@@ -33,7 +33,6 @@ lib/IO/All/String.pm
 lib/IO/All/String.pod
 lib/IO/All/Temp.pm
 lib/IO/All/Temp.pod
-t/000-compile-modules.t
 t/IO_All_Test.pm
 t/IO_Dumper.pm
 t/RT81224.t

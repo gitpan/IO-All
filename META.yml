@@ -29,4 +29,4 @@ resources:
   bugtracker: https://github.com/ingydotnet/io-all-pm/issues
   homepage: https://github.com/ingydotnet/io-all-pm
   repository: https://github.com/ingydotnet/io-all-pm.git
-version: '0.71'
+version: '0.72'
