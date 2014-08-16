@@ -23,7 +23,7 @@ my %WriteMakefileArgs = (
     "Cwd" => 0,
     "Scalar::Util" => 0
   },
-  "VERSION" => "0.72",
+  "VERSION" => "0.73",
   "test" => {
     "TESTS" => "t/*.t"
   }
