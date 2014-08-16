@@ -186,7 +186,7 @@ USAGE
     and IO::All will export a single function called "io", which constructs
     all IO objects.
 
-  Note on `io`
+  Note on "io"
     The "io" function is a *magic constructor*. It is easy to use and will
     usually do the right thing, but can also blow up easily.
 
