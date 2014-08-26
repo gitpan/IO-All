@@ -1,3 +1,6 @@
+0.77 Tue Aug 26 12:37:29 PDT 2014
+ - Add new overloads from PR/49 @ginzel++
+
 0.76 Tue Aug 19 16:21:05 PDT 2014
  - Relplace tabs with spaces
 
