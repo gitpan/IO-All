@@ -1,3 +1,6 @@
+0.79 Tue Sep  2 14:34:27 MDT 2014
+ - Doc enhancement. PR/51. @nheinric++
+
 0.78 Thu Aug 28 11:56:36 PDT 2014
  - Release to steal indexing back from Alt::IO::All::new.
 
