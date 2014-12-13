@@ -1,6 +1,6 @@
 use strict; use warnings;
 package IO::All;
-our $VERSION = '0.82';
+our $VERSION = '0.83';
 
 require Carp;
 # So one can use Carp::carp "$message" - without the parenthesis.
@@ -799,17 +799,6 @@ sub error_check {
     return unless $self->io_handle->can('error');
     return unless $self->io_handle->error;
     $self->throw($!);
-}
-
-sub copy {
-    my $self = shift;
-    my $copy;
-    for (keys %{*$self}) {
-        $copy->{$_} = *$self->{$_};
-    }
-    $copy->{io_handle} = 'defined'
-      if defined $copy->{io_handle};
-    return $copy;
 }
 
 sub set_binmode {

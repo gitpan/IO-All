@@ -787,7 +787,8 @@ THE IO::ALL METHODS
 
     relative
         Indicates that the "pathname" for the object should be made
-        relative.
+        relative. If passed an argument, path will be made relative to
+        passed argument.
 
     sort
         Indicates whether objects returned from one of the "all" methods
