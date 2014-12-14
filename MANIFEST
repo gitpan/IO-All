@@ -50,6 +50,7 @@ t/binary_utf8.t
 t/chdir.t
 t/chomp.t
 t/construct.t
+t/copy.t
 t/data/head_test.txt
 t/dbm.t
 t/devnull.t
@@ -78,6 +79,7 @@ t/mydir/file1
 t/mydir/file2
 t/mydir/file3
 t/mystuff
+t/mystuff2
 t/new.t
 t/os.t
 t/overload.t

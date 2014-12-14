@@ -216,9 +216,9 @@ METHOD ROLE CALL
     "appendln", "assert", "atime", "autoclose", "autoflush", "backwards",
     "bcc", "binary", "binmode", "blksize", "blocks", "block_size", "buffer",
     "canonpath", "case_tolerant", "catdir", "catfile", "catpath", "cc",
-    "chdir", "chomp", "clear", "close", "confess", "content", "ctime",
-    "curdir", "dbm", "deep", "device", "device_id", "devnull", "dir",
-    "domain", "empty", "ext", "encoding", "eof", "errors", "file",
+    "chdir", "chomp", "clear", "close", "confess", "content", "copy",
+    "ctime", "curdir", "dbm", "deep", "device", "device_id", "devnull",
+    "dir", "domain", "empty", "ext", "encoding", "eof", "errors", "file",
     "filename", "fileno", "filepath", "filter", "fork", "from", "ftp",
     "get", "getc", "getline", "getlines", "gid", "glob", "handle", "head",
     "http", "https", "inode", "io_handle", "is_absolute", "is_dir",
@@ -989,6 +989,11 @@ THE IO::ALL METHODS
         for different objects. For files and directories it will close and
         release the handle. For sockets it calls shutdown. For tied things
         it unties them, and it unlocks locked things.
+
+    copy
+        Copies the object to the path passed. Works on both files and
+        directories, but directories require "File::Copy::Recursive" to be
+        installed.
 
     empty
         Returns true if a file exists but has no size, or if a directory

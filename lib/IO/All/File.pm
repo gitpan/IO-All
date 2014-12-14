@@ -4,6 +4,7 @@ package IO::All::File;
 use IO::All::Filesys -base;
 use IO::All -base;
 use IO::File;
+use File::Copy ();
 
 #===============================================================================
 const type => 'file';
@@ -36,7 +37,7 @@ sub assert_filepath {
       or return;
     my $directory;
     (undef, $directory) = File::Spec->splitpath($self->pathname);
-    $self->assert_dirpath($directory);
+    $self->_assert_dirpath($directory);
 }
 
 sub assert_open_backwards {
@@ -50,7 +51,7 @@ sub assert_open_backwards {
     $self->is_open(1);
 }
 
-sub assert_open {
+sub _assert_open {
     my $self = shift;
     return if $self->is_open;
     $self->mode(shift) unless $self->mode;
@@ -66,7 +67,7 @@ sub assert_tied_file {
         my $array_ref = do { my @array; \@array };
         my $name = $self->pathname;
         my @options = $self->_rdonly ? (mode => O_RDONLY) : ();
-        push @options, (recsep => "\n");
+        push @options, (recsep => $self->separator);
         tie @$array_ref, 'Tie::File', $name, @options;
         $self->throw("Can't tie 'Tie::File' to '$name':\n$!")
           unless tied @$array_ref;
@@ -96,7 +97,7 @@ sub open {
         $self->io_handle->fdopen($self->_handle, @args);
     }
     $self->set_lock;
-    $self->set_binmode;
+    $self->_set_binmode;
 }
 
 sub exists { -f shift->pathname }
@@ -118,6 +119,14 @@ sub open_msg {
 }
 
 #===============================================================================
+sub copy {
+    my ($self, $new) = @_;
+
+    File::Copy::copy($self->name, $new)
+        or die "failed to copy $self to $new: $!";
+    $self->file($new)
+}
+
 sub close {
     my $self = shift;
     return unless $self->is_open;
@@ -216,41 +225,41 @@ sub unlink {
 }
 
 #===============================================================================
-sub overload_table {
+sub _overload_table {
     my $self = shift;
     (
-        $self->SUPER::overload_table(@_),
-        'file > file' => 'overload_file_to_file',
-        'file < file' => 'overload_file_from_file',
-        '${} file' => 'overload_file_as_scalar',
-        '@{} file' => 'overload_file_as_array',
-        '%{} file' => 'overload_file_as_dbm',
+        $self->SUPER::_overload_table(@_),
+        'file > file' => '_overload_file_to_file',
+        'file < file' => '_overload_file_from_file',
+        '${} file' => '_overload_file_as_scalar',
+        '@{} file' => '_overload_file_as_array',
+        '%{} file' => '_overload_file_as_dbm',
     )
 }
 
-sub overload_file_to_file {
+sub _overload_file_to_file {
     require File::Copy;
     File::Copy::copy($_[1]->pathname, $_[2]->pathname);
     $_[2];
 }
 
-sub overload_file_from_file {
+sub _overload_file_from_file {
     require File::Copy;
     File::Copy::copy($_[2]->pathname, $_[1]->pathname);
     $_[1];
 }
 
-sub overload_file_as_array {
+sub _overload_file_as_array {
     $_[1]->assert_tied_file;
 }
 
-sub overload_file_as_dbm {
+sub _overload_file_as_dbm {
     $_[1]->dbm
       unless $_[1]->isa('IO::All::DBM');
-    $_[1]->assert_open;
+    $_[1]->_assert_open;
 }
 
-sub overload_file_as_scalar {
+sub _overload_file_as_scalar {
     my $scalar = $_[1]->scalar;
     return \$scalar;
 }
