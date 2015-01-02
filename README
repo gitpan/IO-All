@@ -162,11 +162,11 @@ DESCRIPTION
     IO::All is pluggable, and modules like IO::All::LWP and IO::All::Mailto
     add even more functionality. Optionally, every IO::All object can be
     tied to itself. This means that you can use most perl IO builtins on it:
-    readline, <>, getc, print, printf, syswrite, sysread, close.
+    readline, "<>", getc, print, printf, syswrite, sysread, close.
 
     The distinguishing magic of IO::All is that it will automatically open
     (and close) files, directories, sockets and other IO things for you. You
-    never need to specify the mode ('<', '>>', etc), since it is determined
+    never need to specify the mode ("<", ">>", etc), since it is determined
     by the usage context. That means you can replace this:
 
         open STUFF, '<', './mystuff'
@@ -241,8 +241,8 @@ METHOD ROLE CALL
 
 OPERATOR OVERLOADING
     IO::All objects overload a small set of Perl operators to great effect.
-    The overloads are limited to <, <<, >, >>, dereferencing operations, and
-    stringification.
+    The overloads are limited to "<", "<<", ">", ">>", dereferencing
+    operations, and stringification.
 
     Even though relatively few operations are overloaded, there is actually
     a huge matrix of possibilities for magic. That's because the overloading
@@ -263,7 +263,7 @@ OPERATOR OVERLOADING
     return objects when they might otherwise return file names. Then the
     recipient can use the result either as an object or a string.
 
-    '>' and '<' move data between objects in the direction pointed to by the
+    ">" and "<" move data between objects in the direction pointed to by the
     operator.
 
         $content1 < io('file1');
@@ -273,7 +273,7 @@ OPERATOR OVERLOADING
         io('file3') > io('file4');
         io('file5') < io('file4');
 
-    '>>' and '<<' do the same thing except the recipient string or file is
+    ">>" and "<<" do the same thing except the recipient string or file is
     appended to.
 
     An IO::All file used as an array reference becomes tied using Tie::File:
@@ -320,9 +320,9 @@ FILE LOCKING
         $io1->println('line 1');
 
         fork or do {
-            my $io2 = io('myfile')->lock;
-            print $io2->slurp;
-            exit;
+          my $io2 = io('myfile')->lock;
+          print $io2->slurp;
+          exit;
         };
 
         sleep 1;
@@ -349,7 +349,7 @@ FILE LOCKING
         my $io = io 'file1.txt';
         $io->autoclose(1);
         while (my $line = $io->getline || $io->getline) {
-            print $line;
+          print $line;
         }
 
   Reading Backwards
@@ -361,7 +361,7 @@ FILE LOCKING
         my $io = io('file1.txt');
         $io->backwards;
         while (my $line = $io->getline) {
-            push @reversed, $line;
+          push @reversed, $line;
         }
 
     or more simply:
@@ -472,8 +472,8 @@ FILE LOCKING
         use Data::Dumper;
 
         sub dump {
-            my $self = shift;
-            Dumper(@_) > $self;
+          my $self = shift;
+          Dumper(@_) > $self;
         }
 
         1;
@@ -492,8 +492,8 @@ FILE LOCKING
         use Data::Dumper;
 
         sub dump {
-            my $self = shift;
-            Dumper(@_) > $self;
+          my $self = shift;
+          Dumper(@_) > $self;
         }
 
 THE IO::ALL METHODS
@@ -783,7 +783,7 @@ THE IO::ALL METHODS
 
     rdwr
         This option indicates that DBM and MLDBM files should be opened in
-        read- write mode.
+        read/write mode.
 
     relative
         Indicates that the "pathname" for the object should be made
@@ -1477,25 +1477,6 @@ STABILITY
     the result probably won't make sense. Little attempt is made to check
     for improper usage.
 
-SEE ALSO
-    *   IO::Handle
-
-    *   IO::File
-
-    *   IO::Dir
-
-    *   IO::Socket
-
-    *   File::Spec
-
-    *   File::Path
-
-    *   File::ReadBackwards
-
-    *   Tie::File
-
-    *   File::MimeInfo
-
 CREDITS
     A lot of people have sent in suggestions, that have become a part of
     IO::All. Thank you.
@@ -1515,11 +1496,30 @@ REPOSITORY AND COMMUNITY
 
     Please join the IO::All discussion on #io-all on irc.perl.org.
 
+SEE ALSO
+    *   File::Spec
+
+    *   File::Path
+
+    *   File::ReadBackwards
+
+    *   File::MimeInfo
+
+    *   IO::Handle
+
+    *   IO::File
+
+    *   IO::Dir
+
+    *   IO::Socket
+
+    *   Tie::File
+
 AUTHOR
     Ingy döt Net <ingy@cpan.org>
 
-COPYRIGHT
-    Copyright 2004-2014. Ingy döt Net.
+COPYRIGHT AND LICENSE
+    Copyright 2004-2015. Ingy döt Net.
 
     This program is free software; you can redistribute it and/or modify it
     under the same terms as Perl itself.

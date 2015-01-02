@@ -4,13 +4,13 @@
       "Ingy döt Net <ingy@cpan.org>"
    ],
    "dynamic_config" : 0,
-   "generated_by" : "Dist::Zilla version 5.020, CPAN::Meta::Converter version 2.142060",
+   "generated_by" : "Dist::Zilla version 5.029, CPAN::Meta::Converter version 2.143240",
    "license" : [
       "perl_5"
    ],
    "meta-spec" : {
       "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
-      "version" : "2"
+      "version" : 2
    },
    "name" : "IO-All",
    "no_index" : {
@@ -56,6 +56,6 @@
          "web" : "https://github.com/ingydotnet/io-all-pm"
       }
    },
-   "version" : "0.85"
+   "version" : "0.86"
 }
 
